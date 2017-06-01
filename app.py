@@ -21,7 +21,7 @@ def index():
     # Call Name Service
     nameserviceResponse = requests.get(nameserviceUrl) 
     sys.stdout.write('NAME-SERVICE: ' + nameserviceUrl)
-
+    sys.stdout.flush()
     return "%s, %s!" % (greeterResponse.text, nameserviceResponse.text)
 
 if __name__ == '__main__':
