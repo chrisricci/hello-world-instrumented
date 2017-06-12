@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: Prometheus
+metadata:
+  name: prometheus-hello-world
+  labels:
+    prometheus: "prometheus-hello-world"
+spec:
+  serviceAccountName: prometheus
+  serviceMonitorSelector:
+    matchLabels:
+      team: hello-world
+  version: v1.6.3
+  resources:
+    requests:
+      memory: 400Mi

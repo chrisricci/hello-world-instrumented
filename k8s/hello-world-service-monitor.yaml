@@ -1,0 +1,13 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ServiceMonitor
+metadata:
+  name: hello-world 
+  labels:
+    team: hello-world
+spec:
+  selector:
+    matchLabels:
+      app: hello-world
+  endpoints:
+  - port: web
+  - port: metrics

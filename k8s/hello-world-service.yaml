@@ -1,0 +1,18 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: hello-world 
+  labels:
+    app: hello-world
+  annotations:
+    prometheus.io/path: "/"
+    prometheus.io/port: 8000
+spec:
+  selector:
+    app: hello-world
+  ports:
+  - name: web
+    port: 5000
+  - name: metrics
+    port: 8000
+  type: LoadBalancer
