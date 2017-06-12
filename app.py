@@ -17,7 +17,7 @@ app.logger.setLevel(logging.DEBUG)
 def index():
     # Call Greeter Service
     timestamp = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))	
-    time.sleep(3)
+    time.sleep(10)
     return timestamp + " Hello, World!\n"
 
 if __name__ == '__main__':
