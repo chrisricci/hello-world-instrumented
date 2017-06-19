@@ -6,7 +6,7 @@ metadata:
     app: hello-world
   annotations:
     prometheus.io/path: "/"
-    prometheus.io/port: 8000
+    prometheus.io/port: "8000"
 spec:
   selector:
     app: hello-world
