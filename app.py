@@ -18,10 +18,10 @@ def index():
     # Call Greeter Service
     timestamp = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))	
     app.logger.debug("Starting at: " + timestamp)
-#    time.sleep(10)
+    time.sleep(2)
     timestamp2 = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     app.logger.debug("Finished at: " + timestamp2)
-    return timestamp2 + " Hello, World! - v2\n"
+    return timestamp2 + " Hello, World! - v1\n"
 
 if __name__ == '__main__':
     monitor(app, port=8000)
