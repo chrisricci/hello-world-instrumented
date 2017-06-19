@@ -6,7 +6,6 @@ spec:
   type: LoadBalancer
   ports:
   - name: web
-    nodePort: 30901
     port: 9090
     protocol: TCP
     targetPort: web
