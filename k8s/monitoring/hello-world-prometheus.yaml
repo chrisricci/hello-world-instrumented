@@ -1,0 +1,24 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: Prometheus
+metadata:
+  name: prometheus-hello-world
+  labels:
+    prometheus: "prometheus-hello-world"
+spec:
+  serviceAccountName: prometheus
+  alerting:
+    alertmanagers:
+    - namespace: default
+      name: alertmanager-helloworld
+      port: web
+  serviceMonitorSelector:
+    matchLabels:
+      team: hello-world
+  version: v1.6.3
+  resources:
+    requests:
+      memory: 400Mi
+  ruleSelector:
+    matchLabels:
+      role: prometheus-rulefiles
+      prometheus: prometheus-helloworld 
