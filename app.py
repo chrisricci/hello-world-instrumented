@@ -24,9 +24,12 @@ def index():
     if sleep is not None:
       app.logger.debug("Sleeping for " + sleep + " seconds")
       time.sleep(int(sleep))
+    else:
+      # Force a sleep.
+      # Comment this for demo purposes
+      app.logger.debug("Forcing a sleep")
+      time.sleep(2)
 
-    # Force a sleep.
-    time.sleep(2)
     timestamp2 = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     app.logger.debug("Finished at: " + timestamp2)
     return timestamp2 + " Hello, World! - v1\n"
