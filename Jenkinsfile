@@ -42,7 +42,7 @@ def userInput = true
   timeout(time:5, unit:'DAYS') {
     userInput = input(
       id: 'promoteToProd', message: 'Approve rollout to production?', parameters: [
-      [$class: 'BooleanParameterDefinition', defaultValue: 'true', description: 'Approve', name: 'Approve?']
+      [$class: 'BooleanParameterDefinition', defaultValue: true, description: 'Approve', name: 'Approve?']
     ])
   }
 // } catch(Exception err) { // timeout reached or input false
