@@ -47,23 +47,16 @@ try {
 } catch(err) { // timeout reached or input false
     echo "Rollout Aborted"
     echo "userInput: [${userInput}]"
+    currentBuild.result = 'FAILURE'
+    error('Aborted')
 }
 
-
+stage 'Rollout to Production'
 node{ 
-  checkout scm
-  if (didTimeout) {
-    // Perhaps roll back?
-    echo "no input received before timeout"
-  } else if (userInput == true) {         
-    // Roll out to production environment
-    // Change deployed image in canary to the one we just built
-    sh("sed -i.bak 's#quay.io/${project}/${appName}:.*\$#${imageTag}#' ./k8s/production/*.yaml")
-    //sh("kubectl --namespace=${namespace} apply -f k8s/services/")
-    sh("kubectl --namespace=${namespace} apply -f k8s/production/")
-  } else {
-    // Roll back?
-    echo "Rollout Aborted"
-    currentBuild.result = 'FAILURE'
-  }  
+  checkout scm 
+  // Roll out to production environment
+  // Change deployed image in canary to the one we just built
+  sh("sed -i.bak 's#quay.io/${project}/${appName}:.*\$#${imageTag}#' ./k8s/production/*.yaml")
+  //sh("kubectl --namespace=${namespace} apply -f k8s/services/")
+  sh("kubectl --namespace=${namespace} apply -f k8s/production/")
 }
