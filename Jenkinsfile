@@ -45,7 +45,7 @@ try {
       [$class: 'BooleanParameterDefinition', defaultValue: 'true', description: 'Approve', name: 'Approve?']
     ])
   }
-} catch(err) { // timeout reached or input false
+} catch(Exception err) { // timeout reached or input false
   def user = err.getCauses()[0].getUser()
   if('SYSTEM' == user.toString()) { //SYSTEM means timeout reached
     didTimeout = true
