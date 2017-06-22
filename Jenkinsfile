@@ -4,7 +4,7 @@ def project = 'chris_ricci'
 def appName = 'hello-world-instrumented'
 def feSvcName = "${appName}"
 def namespace = 'monitoring-demo'
-def imageTag = "quay.io/${project}/${appName}:${env.BRANCH_NAME}.v${env.BUILD_NUMBER}"
+def imageTag = "quay.io/${project}/${appName}:v${env.BUILD_NUMBER}"
 
 node {
   checkout scm
@@ -36,9 +36,11 @@ node {
 //    break
 //  }
 }
+def didTimeout = false
+def userInput = true
 try {
   timeout(time:5, unit:'DAYS') {
-    def userInput = input(
+    userInput = input(
       id: 'promoteToProd', message: 'Approve rollout to production?', parameters: [
       [$class: 'BooleanParameterDefinition', defaultValue: 'true', description: 'Approve', name: 'Approve?']
     ])
