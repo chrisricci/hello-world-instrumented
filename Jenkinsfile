@@ -38,22 +38,22 @@ node {
 }
 def didTimeout = false
 def userInput = true
-try {
+// try {
   timeout(time:5, unit:'DAYS') {
     userInput = input(
       id: 'promoteToProd', message: 'Approve rollout to production?', parameters: [
       [$class: 'BooleanParameterDefinition', defaultValue: 'true', description: 'Approve', name: 'Approve?']
     ])
   }
-} catch(Exception err) { // timeout reached or input false
-  def user = err.getCauses()[0].getUser()
-  if('SYSTEM' == user.toString()) { //SYSTEM means timeout reached
-    didTimeout = true
-  } else {
-    userInput = false
-    echo "Aborted by: [${user}]"
-  }
-}
+// } catch(Exception err) { // timeout reached or input false
+//  def user = err.getCauses()[0].getUser()
+//  if('SYSTEM' == user.toString()) { //SYSTEM means timeout reached
+//    didTimeout = true
+//  } else {
+//    userInput = false
+//    echo "Aborted by: [${user}]"
+//  }
+//}
 
 node{ 
   if (didTimeout) {
