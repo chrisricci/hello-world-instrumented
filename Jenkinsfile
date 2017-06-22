@@ -38,22 +38,16 @@ node {
 }
 def didTimeout = false
 def userInput = true
-// try {
+try {
   timeout(time:5, unit:'DAYS') {
-    userInput = input(
-      id: 'promoteToProd', message: 'Approve rollout to production?', parameters: [
-      [$class: 'BooleanParameterDefinition', defaultValue: true, description: 'Approve', name: 'Approve?']
-    ])
+      userInput = input(id: 'promoteToProd', message: 'Approve rollout to production?')
+      echo "userInput: [${userInput}]" 
   }
-// } catch(Exception err) { // timeout reached or input false
-//  def user = err.getCauses()[0].getUser()
-//  if('SYSTEM' == user.toString()) { //SYSTEM means timeout reached
-//    didTimeout = true
-//  } else {
-//    userInput = false
-//    echo "Aborted by: [${user}]"
-//  }
-//}
+} catch(err) { // timeout reached or input false
+    echo "Rollout Aborted"
+    echo "userInput: [${userInput}]"
+  }
+}
 
 node{ 
   checkout scm
