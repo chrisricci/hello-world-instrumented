@@ -36,6 +36,7 @@ node {
 //    break
 //  }
 }
+stage 'Verify Canary'
 def didTimeout = false
 def userInput = true
 try {
