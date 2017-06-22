@@ -47,8 +47,8 @@ try {
 } catch(err) { // timeout reached or input false
     echo "Rollout Aborted"
     echo "userInput: [${userInput}]"
-  }
 }
+
 
 node{ 
   checkout scm
