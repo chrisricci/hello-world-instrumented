@@ -46,7 +46,7 @@ try {
     ])
   }
 } catch(Exception err) { // timeout reached or input false
-  def user = err.getCause()[0].getUser()
+  def user = err.getCauses()[0].getUser()
   if('SYSTEM' == user.toString()) { //SYSTEM means timeout reached
     didTimeout = true
   } else {
