@@ -23,18 +23,18 @@ node {
   sh("docker push ${imageTag}")
 
   stage "Deploy Canary"
-  switch (env.BRANCH_NAME) {
-     case "master":  
+//  switch (env.BRANCH_NAME) {
+//     case "master":  
          // Roll out to canary environment
          // Change deployed image in canary to the one we just built
          sh("sed -i.bak 's#quay.io/${project}/${appName}:.*\$#${imageTag}#' ./k8s/canary/*.yaml")
 //	 sh("sed -i.bak 's#python-api-canary#python-api-v${env.BUILD_NUMBER}#' ./k8s/canary/*.yaml")
          sh("kubectl --namespace=${namespace} apply -f k8s/services/")
          sh("kubectl --namespace=${namespace} apply -f k8s/canary/")
-    break
-    default:
-    break
-  }
+//    break
+//    default:
+//    break
+//  }
 }
 try {
   timeout(time:5, unit:'DAYS') {
