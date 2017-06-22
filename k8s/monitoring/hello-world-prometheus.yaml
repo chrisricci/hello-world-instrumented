@@ -8,7 +8,7 @@ spec:
   serviceAccountName: prometheus
   alerting:
     alertmanagers:
-    - namespace: default
+    - namespace: monitoring-demo
       name: alertmanager-helloworld
       port: web
   serviceMonitorSelector:
