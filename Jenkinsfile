@@ -59,4 +59,5 @@ node{
   sh("sed -i.bak 's#quay.io/${project}/${appName}:.*\$#${imageTag}#' ./k8s/production/*.yaml")
   //sh("kubectl --namespace=${namespace} apply -f k8s/services/")
   sh("kubectl --namespace=${namespace} apply -f k8s/production/")
+  currentBuild.result = 'SUCCESS'
 }
