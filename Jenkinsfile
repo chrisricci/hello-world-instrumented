@@ -56,6 +56,7 @@ def userInput = true
 //}
 
 node{ 
+  checkout scm
   if (didTimeout) {
     // Perhaps roll back?
     echo "no input received before timeout"
