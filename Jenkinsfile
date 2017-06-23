@@ -46,7 +46,7 @@ try {
     echo "Rollout Aborted"
     echo "userInput: [${userInput}]"
     currentBuild.result = 'FAILURE'
-    echo "Rolling back to: ${prevImageTag}
+    echo "Rolling back to: ${prevImageTag}"
     stage 'Rolling Back Canary'
     node{
          sh("sed -i.bak 's#${imageTag}\$#${prevImageTag}#' ./k8s/canary/*.yaml")
