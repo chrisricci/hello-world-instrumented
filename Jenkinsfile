@@ -5,8 +5,15 @@ def appName = 'hello-world-instrumented'
 def feSvcName = "${appName}"
 def namespace = 'monitoring-demo'
 def imageTag = "quay.io/${project}/${appName}:v${env.BUILD_NUMBER}"
+def prevImageTag = ''
 
 node {
+  prevImageTag = sh(
+	script: "kubectl get deployment hello-world-canary -n ${namespace} -o jsonpath='{.spec.template.spec.containers[0].image}'"
+	returnStdout: true
+  ).trim()
+  echo "Previous Image: ${prevImageTag}"
+
   checkout scm
   sh("printenv")
 	
@@ -16,25 +23,15 @@ node {
   stage 'Build image'
   sh("docker build -t ${imageTag} .")
 
-//  stage 'Run Go tests '
-//  sh("docker run ${imageTag} go test")
-
   stage 'Push image to Quay.io registry'
   sh("docker push ${imageTag}")
 
   stage "Deploy Canary"
-//  switch (env.BRANCH_NAME) {
-//     case "master":  
-         // Roll out to canary environment
-         // Change deployed image in canary to the one we just built
-         sh("sed -i.bak 's#quay.io/${project}/${appName}:.*\$#${imageTag}#' ./k8s/canary/*.yaml")
-//	 sh("sed -i.bak 's#python-api-canary#python-api-v${env.BUILD_NUMBER}#' ./k8s/canary/*.yaml")
-         sh("kubectl --namespace=${namespace} apply -f k8s/services/")
-         sh("kubectl --namespace=${namespace} apply -f k8s/canary/")
-//    break
-//    default:
-//    break
-//  }
+  // Roll out to canary environment
+  // Change deployed image in canary to the one we just built
+  sh("sed -i.bak 's#quay.io/${project}/${appName}:.*\$#${imageTag}#' ./k8s/canary/*.yaml")
+  sh("kubectl --namespace=${namespace} apply -f k8s/services/")
+  sh("kubectl --namespace=${namespace} apply -f k8s/canary/")
 }
 stage 'Verify Canary'
 def didTimeout = false
@@ -45,9 +42,17 @@ try {
       echo "userInput: [${userInput}]" 
   }
 } catch(err) { // timeout reached or input false
+    stage 'Rolling Back Canary'
     echo "Rollout Aborted"
     echo "userInput: [${userInput}]"
     currentBuild.result = 'FAILURE'
+    echo "Rolling back to: ${prevImageTag}
+    stage 'Rolling Back Canary'
+    node{
+         sh("sed -i.bak 's#${imageTag}\$#${prevImageTag}#' ./k8s/canary/*.yaml")
+         sh("kubectl --namespace=${namespace} apply -f k8s/services/")
+         sh("kubectl --namespace=${namespace} apply -f k8s/canary/")
+    }
     error('Aborted')
 }
 
@@ -57,7 +62,6 @@ node{
   // Roll out to production environment
   // Change deployed image in canary to the one we just built
   sh("sed -i.bak 's#quay.io/${project}/${appName}:.*\$#${imageTag}#' ./k8s/production/*.yaml")
-  //sh("kubectl --namespace=${namespace} apply -f k8s/services/")
   sh("kubectl --namespace=${namespace} apply -f k8s/production/")
   currentBuild.result = 'SUCCESS'
 }
