@@ -47,7 +47,7 @@ try {
     echo "userInput: [${userInput}]"
     currentBuild.result = 'FAILURE'
     echo "Rolling back to: ${prevImageTag}"
-    stage 'Rolling Back Canary'
+
     node{
          checkout scm 
          sh("sed -i.bak 's#${imageTag}\$#${prevImageTag}#' ./k8s/canary/*.yaml")
