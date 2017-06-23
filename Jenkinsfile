@@ -49,6 +49,7 @@ try {
     echo "Rolling back to: ${prevImageTag}"
     stage 'Rolling Back Canary'
     node{
+         checkout scm 
          sh("sed -i.bak 's#${imageTag}\$#${prevImageTag}#' ./k8s/canary/*.yaml")
          sh("kubectl --namespace=${namespace} apply -f k8s/services/")
          sh("kubectl --namespace=${namespace} apply -f k8s/canary/")
