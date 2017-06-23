@@ -9,7 +9,7 @@ def prevImageTag = ''
 
 node {
   prevImageTag = sh(
-	script: "kubectl get deployment hello-world-canary -n ${namespace} -o jsonpath='{.spec.template.spec.containers[0].image}'"
+	script: "kubectl get deployment hello-world-canary -n ${namespace} -o jsonpath='{.spec.template.spec.containers[0].image}'",
 	returnStdout: true
   ).trim()
   echo "Previous Image: ${prevImageTag}"
