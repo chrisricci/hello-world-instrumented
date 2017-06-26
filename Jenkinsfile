@@ -52,7 +52,7 @@ try {
     currentBuild.result = 'FAILURE'
 
     // If there was a previous deployment, roll it back
-    if (${prevImageTag}) {
+    if (${prevImageTag} != '') {
       echo "Rolling back to: ${prevImageTag}"
       node{
         checkout scm 
