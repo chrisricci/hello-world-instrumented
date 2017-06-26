@@ -45,8 +45,8 @@ try {
       userInput = input(id: 'promoteToProd', message: 'Approve rollout to production?')
       echo "userInput: [${userInput}]" 
   }
+  stage 'Rolling Back Canary'
 } catch(err) { // timeout reached or input false
-    stage 'Rolling Back Canary'
     echo "Rollout Aborted"
     echo "userInput: [${userInput}]"
     currentBuild.result = 'FAILURE'
