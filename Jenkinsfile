@@ -50,10 +50,10 @@ try {
     echo "Rollout Aborted"
     echo "userInput: [${userInput}]"
     currentBuild.result = 'FAILURE'
-    echo "Rolling back to: ${prevImageTag}"
-    
+
     // If there was a previous deployment, roll it back
     if (${prevImage}) {
+      echo "Rolling back to: ${prevImageTag}"
       node{
         checkout scm 
         sh("sed -i.bak 's#${imageTag}\$#${prevImageTag}#' ./k8s/canary/*.yaml")
