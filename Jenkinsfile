@@ -6,6 +6,7 @@ def feSvcName = "${appName}"
 def namespace = 'monitoring-demo'
 def imageTag = "quay.io/${project}/${appName}:v${env.BUILD_NUMBER}"
 def prevImageTag = ''
+def prevBuildNum = ''
 
 node {
   try {
@@ -14,6 +15,8 @@ node {
       returnStdout: true
     ).trim()
     echo "Previous Image: ${prevImageTag}"
+    prevBuildNum = prevImageTag.split(':')[1]
+    echo "Previous Build Version: ${prevBuildNum}"
   } catch (err) {
     echo "No Previous Deployment"
   }
@@ -34,6 +37,7 @@ node {
   // Roll out to canary environment
   // Change deployed image in canary to the one we just built
   sh("sed -i.bak 's#quay.io/${project}/${appName}:.*\$#${imageTag}#' ./k8s/canary/*.yaml")
+  sh("sed -i.bak 's#version:.*$#version: v${env.BUILD_NUMBER}#' ./k8s/canary/*.yaml")
   sh("kubectl --namespace=${namespace} apply -f k8s/services/")
   sh("kubectl --namespace=${namespace} apply -f k8s/canary/")
 }
@@ -41,12 +45,12 @@ stage 'Verify Canary'
 def didTimeout = false
 def userInput = true
 try {
-  timeout(time:5, unit:'DAYS') {
+  timeout(time:1, unit:'DAYS') {
       userInput = input(id: 'promoteToProd', message: 'Approve rollout to production?')
       echo "userInput: [${userInput}]" 
   }
-  stage 'Rolling Back Canary'
 } catch(err) { // timeout reached or input false
+    stage 'Rolling Back Canary'
     echo "Rollout Aborted"
     echo "userInput: [${userInput}]"
     currentBuild.result = 'FAILURE'
@@ -57,6 +61,7 @@ try {
       node{
         checkout scm 
         sh("sed -i.bak 's#${imageTag}\$#${prevImageTag}#' ./k8s/canary/*.yaml")
+        sh("sed -i.bak 's#version:.*$#version: ${prevBuildNum}#' ./k8s/canary/*.yaml")
         sh("kubectl --namespace=${namespace} apply -f k8s/services/")
         sh("kubectl --namespace=${namespace} apply -f k8s/canary/")
       }
@@ -70,6 +75,7 @@ node{
   // Roll out to production environment
   // Change deployed image in canary to the one we just built
   sh("sed -i.bak 's#quay.io/${project}/${appName}:.*\$#${imageTag}#' ./k8s/production/*.yaml")
+  sh("sed -i.bak 's#version:.*$#version: v${env.BUILD_NUMBER}#' ./k8s/production/*.yaml")
   sh("kubectl --namespace=${namespace} apply -f k8s/production/")
   currentBuild.result = 'SUCCESS'
 }

@@ -9,6 +9,7 @@ spec:
       labels:
         app: hello-world
         env: canary
+        version: v2
     spec:
       containers:
       - name: hello-world 
