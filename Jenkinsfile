@@ -8,11 +8,15 @@ def imageTag = "quay.io/${project}/${appName}:v${env.BUILD_NUMBER}"
 def prevImageTag = ''
 
 node {
-  prevImageTag = sh(
-	script: "kubectl get deployment hello-world-canary -n ${namespace} -o jsonpath='{.spec.template.spec.containers[0].image}'",
-	returnStdout: true
-  ).trim()
-  echo "Previous Image: ${prevImageTag}"
+  try {
+    prevImageTag = sh(
+      script: "kubectl get deployment hello-world-canary -n ${namespace} -o jsonpath='{.spec.template.spec.containers[0].image}'",
+      returnStdout: true
+    ).trim()
+    echo "Previous Image: ${prevImageTag}"
+  } catch (err) {
+    echo "No Previous Deployment"
+  }
 
   checkout scm
   sh("printenv")
@@ -47,12 +51,15 @@ try {
     echo "userInput: [${userInput}]"
     currentBuild.result = 'FAILURE'
     echo "Rolling back to: ${prevImageTag}"
-
-    node{
-         checkout scm 
-         sh("sed -i.bak 's#${imageTag}\$#${prevImageTag}#' ./k8s/canary/*.yaml")
-         sh("kubectl --namespace=${namespace} apply -f k8s/services/")
-         sh("kubectl --namespace=${namespace} apply -f k8s/canary/")
+    
+    // If there was a previous deployment, roll it back
+    if (${prevImage}) {
+      node{
+        checkout scm 
+        sh("sed -i.bak 's#${imageTag}\$#${prevImageTag}#' ./k8s/canary/*.yaml")
+        sh("kubectl --namespace=${namespace} apply -f k8s/services/")
+        sh("kubectl --namespace=${namespace} apply -f k8s/canary/")
+      }
     }
     error('Aborted')
 }
