@@ -60,7 +60,7 @@ try {
       echo "Rolling back to: ${prevImageTag}"
       node{
         checkout scm 
-        sh("sed -i.bak 's#${imageTag}\$#${prevImageTag}#' ./k8s/canary/*.yaml")
+        sh("sed -i.bak 's#quay.io/${project}/${appName}:.*\$#${prevImageTag}#' ./k8s/canary/*.yaml")
         sh("sed -i.bak 's#version:.*\$#version: ${prevBuildNum}#' ./k8s/canary/*.yaml")
         sh("kubectl --namespace=${namespace} apply -f k8s/services/")
         sh("kubectl --namespace=${namespace} apply -f k8s/canary/")
