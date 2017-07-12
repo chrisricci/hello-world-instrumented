@@ -37,7 +37,9 @@ node {
   // Roll out to canary environment
   // Change deployed image in canary to the one we just built
   sh("sed -i.bak 's#quay.io/${project}/${appName}:.*\$#${imageTag}#' ./k8s/canary/*.yaml")
-  sh("sed -i.bak 's#version:.*\$#version: v${env.BUILD_NUMBER}#' ./k8s/canary/*.yaml")
+  //  sh("sed -i.bak 's#version:.*\$#version: v${env.BUILD_NUMBER}#' ./k8s/canary/*.yaml")
+  // Apply version label to deployment
+  sh("kubectl --namespace=${namespace} label deployment hello-world-canary --overwrite version=v${BUILD_NUMBER}")
   sh("kubectl --namespace=${namespace} apply -f k8s/services/")
   sh("kubectl --namespace=${namespace} apply -f k8s/canary/")
 }
@@ -61,8 +63,9 @@ try {
       node{
         checkout scm 
         sh("sed -i.bak 's#quay.io/${project}/${appName}:.*\$#${prevImageTag}#' ./k8s/canary/*.yaml")
-        sh("sed -i.bak 's#version:.*\$#version: ${prevBuildNum}#' ./k8s/canary/*.yaml")
-        sh("kubectl --namespace=${namespace} apply -f k8s/services/")
+        // sh("sed -i.bak 's#version:.*\$#version: ${prevBuildNum}#' ./k8s/canary/*.yaml")
+        sh("kubectl --namespace=${namespace} label deployment hello-world-canary --overwrite version=v${prevBuildNum}")
+	sh("kubectl --namespace=${namespace} apply -f k8s/services/")
         sh("kubectl --namespace=${namespace} apply -f k8s/canary/")
       }
     }
@@ -75,7 +78,8 @@ node{
   // Roll out to production environment
   // Change deployed image in canary to the one we just built
   sh("sed -i.bak 's#quay.io/${project}/${appName}:.*\$#${imageTag}#' ./k8s/production/*.yaml")
-  sh("sed -i.bak 's#version:.*\$#version: v${env.BUILD_NUMBER}#' ./k8s/production/*.yaml")
+  // sh("sed -i.bak 's#version:.*\$#version: v${env.BUILD_NUMBER}#' ./k8s/production/*.yaml")
+  sh("kubectl --namespace=${namespace} label deployment hello-world-production --overwrite version=v${BUILD_NUMBER}")
   sh("kubectl --namespace=${namespace} apply -f k8s/production/")
   currentBuild.result = 'SUCCESS'
 }
