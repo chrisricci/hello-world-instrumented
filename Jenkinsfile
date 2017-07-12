@@ -41,11 +41,11 @@ node {
     sh("kubectl --namespace=${namespace} apply -f k8s/services/")
     sh("kubectl --namespace=${namespace} apply -f k8s/canary/")
     sh("kubectl --namespace=${namespace} label deployment hello-world-canary --overwrite version=v${BUILD_NUMBER}")
-    sh("kubectl --namespace=${namespace} label pod  -l env=canary --overwrite version=v${BUILD_NUMBER}")
+    sh("kubectl --namespace=${namespace} label pod  -l env=canary --all --overwrite version=v${BUILD_NUMBER}")
 
     sh("kubectl --namespace=${namespace} apply -f k8s/production/")
     sh("kubectl --namespace=${namespace} label deployment hello-world-production --overwrite version=v${BUILD_NUMBER}")
-    sh("kubectl --namespace=${namespace} label pod  -l env=production --overwrite version=v${BUILD_NUMBER}")
+    sh("kubectl --namespace=${namespace} label pod  -l env=production --all --overwrite version=v${BUILD_NUMBER}")
     currentBuild.result = 'SUCCESS'   
     return
   } else {
@@ -59,7 +59,7 @@ node {
     //sh("kubectl --namespace=${namespace} apply -f k8s/canary/")
     sh("kubectl --namespace=${namespace} set image deployment/hello-world-canary hello-world=${imageTag}")
     sh("kubectl --namespace=${namespace} label deployment hello-world-canary --overwrite version=v${BUILD_NUMBER}")
-    sh("kubectl --namespace=${namespace} label pod  -l env=canary --overwrite version=v${BUILD_NUMBER}")
+    sh("kubectl --namespace=${namespace} label pod  -l env=canary --all --overwrite version=v${BUILD_NUMBER}")
   }
   stage 'Verify Canary'
   def didTimeout = false
@@ -85,7 +85,7 @@ node {
         //sh("kubectl --namespace=${namespace} apply -f k8s/canary/")
       	sh("kubectl --namespace=${namespace} set image deployment/hello-world-canary hello-world=${prevImageTag}")	
       	sh("kubectl --namespace=${namespace} label deployment hello-world-canary --overwrite version=v${prevBuildNum}")
-        sh("kubectl --namespace=${namespace} label pod  -l env=canary --overwrite version=v${BUILD_NUMBER}")
+        sh("kubectl --namespace=${namespace} label pod  -l env=canary --all --overwrite version=v${BUILD_NUMBER}")
       }
     }
     error('Aborted')
@@ -102,7 +102,7 @@ stage 'Rollout to Production'
     //sh("kubectl --namespace=${namespace} apply -f k8s/production/")
     sh("kubectl --namespace=${namespace} set image deployment/hello-world-production hello-world=${imageTag}")
     sh("kubectl --namespace=${namespace} label deployment hello-world-production --overwrite version=v${BUILD_NUMBER}")
-    sh("kubectl --namespace=${namespace} label pod  -l env=production --overwrite version=v${BUILD_NUMBER}")
+    sh("kubectl --namespace=${namespace} label pod  -l env=production --all --overwrite version=v${BUILD_NUMBER}")
     currentBuild.result = 'SUCCESS'
   }
 }
