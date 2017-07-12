@@ -77,15 +77,15 @@ node {
 
     // If there was a previous deployment, roll it back
     if (prevImageTag != '') {
-      echo "Rolling bSack to: ${prevImageTag}"
+      echo "Rolling back to: ${prevImageTag}"
       node{
         checkout scm 
         //sh("sed -i.bak 's#quay.io/${project}/${appName}:.*\$#${prevImageTag}#' ./k8s/canary/*.yaml")
         //sh("kubectl --namespace=${namespace} apply -f k8s/services/")
         //sh("kubectl --namespace=${namespace} apply -f k8s/canary/")
       	sh("kubectl --namespace=${namespace} set image deployment/hello-world-canary hello-world=${prevImageTag}")	
-      	sh("kubectl --namespace=${namespace} label deployment hello-world-canary --overwrite version=v${prevBuildNum}")
-        sh("kubectl --namespace=${namespace} label pod  -l env=canary --all --overwrite version=v${BUILD_NUMBER}")
+      	sh("kubectl --namespace=${namespace} label deployment hello-world-canary --overwrite version=${prevBuildNum}")
+        sh("kubectl --namespace=${namespace} label pod  -l env=canary --all --overwrite version=${prevBuildNum}")
       }
     }
     error('Aborted')
