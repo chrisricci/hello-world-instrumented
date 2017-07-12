@@ -2,6 +2,8 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: hello-world-canary
+  labels:
+    version: v1
 spec:
   replicas: 1
   template:
@@ -9,7 +11,6 @@ spec:
       labels:
         app: hello-world
         env: canary
-        version: v2
     spec:
       containers:
       - name: hello-world 

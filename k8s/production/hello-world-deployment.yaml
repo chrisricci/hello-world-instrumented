@@ -2,6 +2,8 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: hello-world-production
+  labels:
+    version: v1
 spec:
   replicas: 2
   template:
@@ -9,7 +11,6 @@ spec:
       labels:
         app: hello-world
         env: production
-        version: v1
     spec:
       containers:
       - name: hello-world 
