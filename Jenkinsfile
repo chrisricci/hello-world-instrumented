@@ -10,6 +10,7 @@ def prevBuildNum = ''
 def firstDeploy = false
 
 node {
+  // Check if there's a previous deployment, if so, get the image version so we can rollback if needed
   try {
     prevImageTag = sh(
       script: "kubectl get deployment hello-world-canary -n ${namespace} -o jsonpath='{.spec.template.spec.containers[0].image}'",
@@ -38,6 +39,9 @@ node {
   // If this is the first deployment
   if (firstDeploy) {
     stage 'First Deployment'
+    // Update images in manifests with current build
+    sh("sed -i.bak 's#quay.io/${project}/${appName}:.*\$#${imageTag}#' ./k8s/canary/*.yaml")
+    sh("sed -i.bak 's#quay.io/${project}/${appName}:.*\$#${imageTag}#' ./k8s/production/*.yaml")
     sh("kubectl --namespace=${namespace} apply -f k8s/services/")
     sh("kubectl --namespace=${namespace} apply -f k8s/canary/")
     sh("kubectl --namespace=${namespace} label deployment hello-world-canary --overwrite version=v${BUILD_NUMBER}")
@@ -49,15 +53,13 @@ node {
     currentBuild.result = 'SUCCESS'   
     return
   } else {
-    stage "Deploy Canary"
     // Roll out to canary environment
+    stage "Deploy Canary"
+    
     // Change deployed image in canary to the one we just built
-    // sh("sed -i.bak 's#quay.io/${project}/${appName}:.*\$#${imageTag}#' ./k8s/canary/*.yaml")
-
-    // Apply version label to deployment
-    //sh("kubectl --namespace=${namespace} apply -f k8s/services/")
-    //sh("kubectl --namespace=${namespace} apply -f k8s/canary/")
     sh("kubectl --namespace=${namespace} set image deployment/hello-world-canary hello-world=${imageTag}")
+    
+    // Apply version label to deployment
     sh("kubectl --namespace=${namespace} label deployment hello-world-canary --overwrite version=v${BUILD_NUMBER}")
     sh("kubectl --namespace=${namespace} label pod  -l env=canary --all --overwrite version=v${BUILD_NUMBER}")
   }
@@ -80,9 +82,7 @@ node {
       echo "Rolling back to: ${prevImageTag}"
       node{
         checkout scm 
-        //sh("sed -i.bak 's#quay.io/${project}/${appName}:.*\$#${prevImageTag}#' ./k8s/canary/*.yaml")
-        //sh("kubectl --namespace=${namespace} apply -f k8s/services/")
-        //sh("kubectl --namespace=${namespace} apply -f k8s/canary/")
+        // Change deployed image in canary to the previous image
       	sh("kubectl --namespace=${namespace} set image deployment/hello-world-canary hello-world=${prevImageTag}")	
       	sh("kubectl --namespace=${namespace} label deployment hello-world-canary --overwrite version=${prevBuildNum}")
         sh("kubectl --namespace=${namespace} label pod  -l env=canary --all --overwrite version=${prevBuildNum}")
