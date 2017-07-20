@@ -80,21 +80,21 @@ node {
     // If there was a previous deployment, roll it back
     if (prevImageTag != '') {
       echo "Rolling back to: ${prevImageTag}"
-      node{
-        checkout scm 
-        // Change deployed image in canary to the previous image
-      	sh("kubectl --namespace=${namespace} set image deployment/hello-world-canary hello-world=${prevImageTag}")	
-      	sh("kubectl --namespace=${namespace} label deployment hello-world-canary --overwrite version=${prevBuildNum}")
-        sh("kubectl --namespace=${namespace} label pod  -l env=canary --all --overwrite version=${prevBuildNum}")
-      }
+      //node{
+      checkout scm 
+      // Change deployed image in canary to the previous image
+    	sh("kubectl --namespace=${namespace} set image deployment/hello-world-canary hello-world=${prevImageTag}")	
+    	sh("kubectl --namespace=${namespace} label deployment hello-world-canary --overwrite version=${prevBuildNum}")
+      sh("kubectl --namespace=${namespace} label pod  -l env=canary --all --overwrite version=${prevBuildNum}")
+      //}
     }
     error('Aborted')
   }
-}
 
-if (!firstDeploy) {
-stage 'Rollout to Production'
-  node{ 
+
+  if (!firstDeploy) {
+  stage 'Rollout to Production'
+    //node{ 
     checkout scm 
     // Roll out to production environment
     // Change deployed image in canary to the one we just built
@@ -104,6 +104,7 @@ stage 'Rollout to Production'
     sh("kubectl --namespace=${namespace} label deployment hello-world-production --overwrite version=v${BUILD_NUMBER}")
     sh("kubectl --namespace=${namespace} label pod  -l env=production --all --overwrite version=v${BUILD_NUMBER}")
     currentBuild.result = 'SUCCESS'
+    //}
   }
 }
 
