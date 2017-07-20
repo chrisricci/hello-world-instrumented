@@ -81,7 +81,6 @@ node {
     if (prevImageTag != '') {
       echo "Rolling back to: ${prevImageTag}"
 
-      //checkout scm 
       // Change deployed image in canary to the previous image
     	sh("kubectl --namespace=${namespace} set image deployment/hello-world-canary hello-world=${prevImageTag}")	
     	sh("kubectl --namespace=${namespace} label deployment hello-world-canary --overwrite version=${prevBuildNum}")
@@ -92,8 +91,7 @@ node {
   }
 
   if (!firstDeploy) {
-  stage 'Rollout to Production'
-    // checkout scm 
+  stage 'Rollout to Production' 
     // Roll out to production environment
     // Change deployed image in canary to the one we just built
     //sh("sed -i.bak 's#quay.io/${project}/${appName}:.*\$#${imageTag}#' ./k8s/production/*.yaml")
