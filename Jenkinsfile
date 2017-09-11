@@ -32,13 +32,13 @@ node {
   checkout scm
   sh("printenv")
 	
-  stage 'Login to Quay.io'
-	sh("docker login -u=\"${env.quay_username}\" -p=\"${env.quay_password}\" ${repo}")
+  stage 'Login to Quay'
+	sh("docker login -u=\"${env.quay_username}\" -p=\"${env.quay_password}\" ${env.REPO_NAME}")
 	
   stage 'Build image'
   sh("docker build -t ${imageTag} .")
 
-  stage 'Push image to Quay.io registry'
+  stage 'Push image to Quay registry'
   sh("docker push ${imageTag}")
 
   // If this is the first deployment
