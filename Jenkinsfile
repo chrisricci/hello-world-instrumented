@@ -45,8 +45,8 @@ node {
   if (firstDeploy) {
     stage 'First Deployment'
     // Update images in manifests with current build
-    sh("sed -i.bak 's#${env.REPO_NAME}/${env.PROJECT}/${env.APP_NAME}:.*\$#${imageTag}#' ./k8s/canary/*.yaml")
-    sh("sed -i.bak 's#${env.REPO_NAME}/${env.PROJECT}/${env.APP_NAME}:.*\$#${imageTag}#' ./k8s/production/*.yaml")
+    sh("sed -i.bak 's#${env.REPO_NAME}/${env.PROJECT}/${env.APP_NAME}:.*\$#${env.REPO_NAME}/${env.PROJECT}/${env.APP_NAME}:v${env.BUILD_NUMBER}#' ./k8s/canary/*.yaml")
+    sh("sed -i.bak 's#${env.REPO_NAME}/${env.PROJECT}/${env.APP_NAME}:.*\$#${env.REPO_NAME}/${env.PROJECT}/${env.APP_NAME}:v${env.BUILD_NUMBER}#' ./k8s/production/*.yaml")
     sh("kubectl --namespace=${env.NAMESPACE} apply -f k8s/services/")
     sh("kubectl --namespace=${env.NAMESPACE} apply -f k8s/canary/")
     sh("kubectl --namespace=${env.NAMESPACE} label deployment hello-world-canary --overwrite version=v${BUILD_NUMBER}")
