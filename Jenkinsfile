@@ -9,7 +9,7 @@
 // def namespace = "${env.NAMESPACE}"
 //def namespace = 'monitoring-demo'
 // def imageTag = "quay.io/${project}/${appName}:v${env.BUILD_NUMBER}"
-def imageTag = "${env.repo_name}/${env.PROJECT}/${env.APP_NAME}:v${env.BUILD_NUMBER}"
+def imageTag = "${env.REPO_NAME}/${env.PROJECT}/${env.APP_NAME}:v${env.BUILD_NUMBER}"
 def prevImageTag = ''
 def prevBuildNum = ''
 def firstDeploy = false
@@ -36,10 +36,10 @@ node {
 	sh("docker login -u=\"${env.quay_username}\" -p=\"${env.quay_password}\" ${env.REPO_NAME}")
 	
   stage 'Build image'
-  sh("docker build -t ${imageTag} .")
+  sh("docker build -t ${env.repo_name}/${env.PROJECT}/${env.APP_NAME}:v${env.BUILD_NUMBER} .")
 
   stage 'Push image to Quay registry'
-  sh("docker push ${imageTag}")
+  sh("docker push ${env.repo_name}/${env.PROJECT}/${env.APP_NAME}:v${env.BUILD_NUMBER}")
 
   // If this is the first deployment
   if (firstDeploy) {
@@ -62,7 +62,7 @@ node {
     stage "Deploy Canary"
     
     // Change deployed image in canary to the one we just built
-    sh("kubectl --namespace=${env.NAMESPACE} set image deployment/hello-world-canary hello-world=${imageTag}")
+    sh("kubectl --namespace=${env.NAMESPACE} set image deployment/hello-world-canary hello-world=${env.repo_name}/${env.PROJECT}/${env.APP_NAME}:v${env.BUILD_NUMBER}")
     
     // Apply version label to deployment
     sh("kubectl --namespace=${env.NAMESPACE} label deployment hello-world-canary --overwrite version=v${BUILD_NUMBER}")
@@ -101,7 +101,7 @@ node {
     // Change deployed image in canary to the one we just built
     //sh("sed -i.bak 's#quay.io/${project}/${appName}:.*\$#${imageTag}#' ./k8s/production/*.yaml")
     //sh("kubectl --namespace=${namespace} apply -f k8s/production/")
-    sh("kubectl --namespace=${env.NAMESPACE} set image deployment/hello-world-production hello-world=${imageTag}")
+    sh("kubectl --namespace=${env.NAMESPACE} set image deployment/hello-world-production hello-world=${env.repo_name}/${env.PROJECT}/${env.APP_NAME}:v${env.BUILD_NUMBER}")
     sh("kubectl --namespace=${env.NAMESPACE} label deployment hello-world-production --overwrite version=v${BUILD_NUMBER}")
     sh("kubectl --namespace=${env.NAMESPACE} label pod  -l env=production --all --overwrite version=v${BUILD_NUMBER}")
     currentBuild.result = 'SUCCESS'
