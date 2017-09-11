@@ -1,10 +1,14 @@
 #!groovy
   
-def project = 'chris_ricci'
-def appName = 'hello-world-instrumented'
+// def project = 'chris_ricci'
+// def appName = 'hello-world-instrumented'
+def project = "${env.PROJECT}"
+def appName = "${env.APP_NAME}"
 def feSvcName = "${appName}"
-def namespace = 'monitoring-demo'
-def imageTag = "quay.io/${project}/${appName}:v${env.BUILD_NUMBER}"
+def namespace = "${env.NAMESPACE}"
+//def namespace = 'monitoring-demo'
+// def imageTag = "quay.io/${project}/${appName}:v${env.BUILD_NUMBER}"
+def imageTag = "${env.IMAGE_NAME}:v${env.BUILD_NUMBER}"
 def prevImageTag = ''
 def prevBuildNum = ''
 def firstDeploy = false
