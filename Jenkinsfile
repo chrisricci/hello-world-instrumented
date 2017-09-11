@@ -9,7 +9,7 @@
 // def namespace = "${env.NAMESPACE}"
 //def namespace = 'monitoring-demo'
 // def imageTag = "quay.io/${project}/${appName}:v${env.BUILD_NUMBER}"
-def imageTag = "${env.REPO_NAME}/${env.PROJECT}/${env.APP_NAME}:v${env.BUILD_NUMBER}"
+def imageTag = "${env.repo_name}/${env.PROJECT}/${env.APP_NAME}:v${env.BUILD_NUMBER}"
 def prevImageTag = ''
 def prevBuildNum = ''
 def firstDeploy = false
