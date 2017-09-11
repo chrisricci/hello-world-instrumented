@@ -2,13 +2,14 @@
   
 // def project = 'chris_ricci'
 // def appName = 'hello-world-instrumented'
+def repo = "${env.REPO_NAME}"
 def project = "${env.PROJECT}"
 def appName = "${env.APP_NAME}"
 def feSvcName = "${appName}"
 def namespace = "${env.NAMESPACE}"
 //def namespace = 'monitoring-demo'
 // def imageTag = "quay.io/${project}/${appName}:v${env.BUILD_NUMBER}"
-def imageTag = "${env.REPO_NAME}/${project}/${appName}:v${env.BUILD_NUMBER}"
+def imageTag = "${repo}/${project}/${appName}:v${env.BUILD_NUMBER}"
 def prevImageTag = ''
 def prevBuildNum = ''
 def firstDeploy = false
@@ -32,7 +33,7 @@ node {
   sh("printenv")
 	
   stage 'Login to Quay.io'
-  sh("docker login -u=\"${env.quay_username}\" -p=\"${env.quay_password}\" quay.io")
+	sh("docker login -u=\"${env.quay_username}\" -p=\"${env.quay_password}\" ${repo}")
 	
   stage 'Build image'
   sh("docker build -t ${imageTag} .")
