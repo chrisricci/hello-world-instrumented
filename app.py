@@ -5,6 +5,7 @@ import sys
 import logging
 import datetime
 import time
+import socket
 
 from flask import Flask, request
 from flask_prometheus import monitor
@@ -12,6 +13,8 @@ from flask_prometheus import monitor
 app = Flask(__name__)
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
 app.logger.setLevel(logging.DEBUG)
+
+hostname = socket.gethostname()
 
 @app.route('/')
 def index():
@@ -32,7 +35,7 @@ def index():
 
     timestamp2 = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     app.logger.debug("Finished at: " + timestamp2)
-    return timestamp2 + " Hello, World!!\n"
+    return hostname + "-" + timestamp2 + " Hello, World!!\n"
 
 if __name__ == '__main__':
     monitor(app, port=8000)
