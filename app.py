@@ -8,6 +8,11 @@ import time
 
 from flask import Flask, request
 from flask_prometheus import monitor
+#from OpenSSL import SSL
+
+#context = SSL.Context(SSL.SSLv23_METHOD)
+#context.use_privatekey_file('tls/tls.key')
+#context.use_certificate_file('tls/tls.crt')
 
 app = Flask(__name__)
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
@@ -36,4 +41,4 @@ def index():
 
 if __name__ == '__main__':
     monitor(app, port=8000)
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', ssl_context=('tls/tls.crt','tls/tls.key'))
