@@ -1,0 +1,1 @@
+<?xml version='1.0' encoding='UTF-8'?><Error><Code>AccessDenied</Code><Message>Access denied.</Message><Details>Anonymous users does not have storage.objects.get access to coreos-tectonic-torcx/manifests/amd64-usr/1576.4.0/torx_manifest.json.siq.</Details></Error>

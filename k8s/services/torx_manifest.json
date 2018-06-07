@@ -1,0 +1,52 @@
+{
+  "kind": "torcx-package-list-v0",
+  "value": {
+    "packages": [
+      {
+        "name": "docker",
+        "versions": [
+          {
+            "version": "1.12",
+            "hash": "sha512-7c6559ab1c538488a4688db49a610f55cb91f3ccf0fcae064abc60bd3da093aeb38d15b8a136d5421d71dd8f1006b06f50ec0e6ff3574e792e65f6cc718a30de",
+            "casDigest": "7c6559ab1c538488a4688db49a610f55cb91f3ccf0fcae064abc60bd3da093aeb38d15b8a136d5421d71dd8f1006b06f50ec0e6ff3574e792e65f6cc718a30de",
+            "sourcePackage": "app-emulation/docker-1.12.6-r8",
+            "locations": [
+              {
+                "path": "/usr/share/torcx/store/docker:1.12.torcx.tgz"
+              },
+              {
+                "url": "https://tectonic-torcx.release.core-os.net/pkgs/amd64-usr/docker/7c6559ab1c538488a4688db49a610f55cb91f3ccf0fcae064abc60bd3da093aeb38d15b8a136d5421d71dd8f1006b06f50ec0e6ff3574e792e65f6cc718a30de/docker:1.12.torcx.tgz"
+              }
+            ]
+          },
+          {
+            "version": "17.09",
+            "hash": "sha512-20829a8345c15ab9901ed545ca8cbf85bf820f6dbaaa1920d6a5902137d0e71dae5da111bf306689966c9fe720b59fbf401ff808aeea098e2b44c693c333e23c",
+            "casDigest": "20829a8345c15ab9901ed545ca8cbf85bf820f6dbaaa1920d6a5902137d0e71dae5da111bf306689966c9fe720b59fbf401ff808aeea098e2b44c693c333e23c",
+            "sourcePackage": "app-emulation/docker-17.09.0-r1",
+            "locations": [
+              {
+                "path": "/usr/share/torcx/store/docker:17.09.torcx.tgz"
+              },
+              {
+                "url": "https://tectonic-torcx.release.core-os.net/pkgs/amd64-usr/docker/20829a8345c15ab9901ed545ca8cbf85bf820f6dbaaa1920d6a5902137d0e71dae5da111bf306689966c9fe720b59fbf401ff808aeea098e2b44c693c333e23c/docker:17.09.torcx.tgz"
+              }
+            ]
+          },
+          {
+            "version": "17.03",
+            "hash": "sha512-b7de25818c5d8ed4a2b258b2af136d0652ab1d610b3325a955de03ec2d80af1ab440f86d80c4bc1892f9870d70cee0c14ce3e4f5608d5437ae844a5b39bad23a",
+            "casDigest": "b7de25818c5d8ed4a2b258b2af136d0652ab1d610b3325a955de03ec2d80af1ab440f86d80c4bc1892f9870d70cee0c14ce3e4f5608d5437ae844a5b39bad23a",
+            "sourcePackage": "app-emulation/docker-17.03.2-r1",
+            "locations": [
+              {
+                "url": "https://tectonic-torcx.release.core-os.net/pkgs/amd64-usr/docker/b7de25818c5d8ed4a2b258b2af136d0652ab1d610b3325a955de03ec2d80af1ab440f86d80c4bc1892f9870d70cee0c14ce3e4f5608d5437ae844a5b39bad23a/docker:17.03.torcx.tgz"
+              }
+            ]
+          }
+        ],
+        "defaultVersion": "17.09"
+      }
+    ]
+  }
+}

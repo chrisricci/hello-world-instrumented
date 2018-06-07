@@ -37,8 +37,8 @@ def index():
 
     timestamp2 = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     app.logger.debug("Finished at: " + timestamp2)
-    return timestamp2 + " Hello, World!!\n"
+    return timestamp2 + " Hello, World!! - Update\n"
 
 if __name__ == '__main__':
     monitor(app, port=8000)
-    app.run(host='0.0.0.0', ssl_context=('tls/tls.crt','tls/tls.key'))
+    app.run(host='0.0.0.0', ssl_context=('/app/tls/tls.crt','/app/tls/tls.key'))
