@@ -1,0 +1,26 @@
+openshift.withCluster() {
+    env.NAMESPACE = openshift.project()
+}
+
+pipeline {
+    agent {
+        label 'master'
+    }
+    stages {
+
+        stage('Git Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build image') {
+            steps {
+                echo "Namespace: ${NAMESPACE}"
+            }
+        }
+
+
+    }
+
+}
