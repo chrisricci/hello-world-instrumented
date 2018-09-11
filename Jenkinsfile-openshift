@@ -39,7 +39,7 @@ pipeline {
                 script {
                     openshift.withCluster() {
                         buildSelector = openshift.selector('bc', APP_NAME).startBuild("--from-dir=.", "--wait")
-                        if (buildSelector.object().status.phase != "Complete") error("Build failed: ${buildSelector.object().status.message}") //TODO: try
+                        //if (buildSelector.object().status.phase != "Complete") error("Build failed: ${buildSelector.object().status.message}") //Process stops without this
                         echo "Build complete: " + buildSelector.names()
                     }
                 }
