@@ -4,6 +4,7 @@ openshift.withCluster() {
     env.CICD_NAMESPACE = 'myproject'
     env.DEPLOY_NAMESPACE = 'hello'
     replicaCount = 3
+    canaryWeight=10 //percentage
 
     promoteOrRollback=null
 }
@@ -74,19 +75,18 @@ pipeline {
                                 /***
                                  * First deployment
                                  **/
-                                echo "Create deployment config ${APP_NAME_CANARY} in namespace ${DEPLOY_NAMESPACE}"
+                                echo "First deployment of ${APP_NAME_CANARY} in namespace ${DEPLOY_NAMESPACE}"
 
                                 //The canary deployment also has it's own image stream in this namespace.
                                 //Create new app
                                 def newAppSelector = openshift.newApp("$DEPLOY_NAMESPACE/$APP_NAME_CANARY", "--name=${APP_NAME_CANARY}",  "--labels=service=${APP_NAME}")
+                                echo "Created: "+newAppSelector.names()
 
                                 //wait for initial rollout
                                 openshift.selector('dc', APP_NAME_CANARY).rollout().status()
 
                                 //Remove automatic trigger from DeploymentConfig. It may or may not stop the first deployment if removed too early
                                 openshift.set("triggers", "dc/$APP_NAME_CANARY", "--manual")
-                                //Delete service, not needed
-                                newAppSelector.narrow("svc").delete()
 
                                 //Add readiness/liveness probes. These will be applied after the rollout upcoming.
                                 openshift.set("probe dc/$APP_NAME_CANARY --readiness --get-url=http://:8080/ --initial-delay-seconds=5 --failure-threshold=10 --period-seconds=10")
@@ -181,10 +181,11 @@ pipeline {
                                 /***
                                  * First deployment
                                  **/
-                                echo "Create deployment config ${APP_NAME} in namespace ${DEPLOY_NAMESPACE}"
+                                echo "First deployment of ${APP_NAME} in namespace ${DEPLOY_NAMESPACE}"
 
                                 //Create new app
                                 def newAppSelector = openshift.newApp("$DEPLOY_NAMESPACE/$APP_NAME", "--name=${APP_NAME}", "--labels=service=${APP_NAME}")
+                                echo "Created: "+newAppSelector.names()
 
                                 //wait for initial rollout
                                 openshift.selector('dc', APP_NAME).rollout().status()
@@ -199,13 +200,14 @@ pipeline {
                                 openshift.set("probe dc/$APP_NAME --readiness --get-url=http://:8080/ --initial-delay-seconds=5 --failure-threshold=10 --period-seconds=10")
                                 openshift.set("probe dc/$APP_NAME --liveness  --get-url=http://:8080/ --initial-delay-seconds=30 --failure-threshold=10 --period-seconds=10")
 
-                                //Modify Service so the canary pods are also included, remove deploymentconfig label from selector
-                                def newService = newAppSelector.narrow("svc").object()
-                                newService.spec.selector = ['service': "$APP_NAME"]
-                                openshift.replace(newService)
-
                                 //Create route
                                 newAppSelector.narrow("svc").expose()
+                                def route = openshift.selector("route",APP_NAME).object()
+                                route.spec.to.weight=100-canaryWeight
+                                route.spec.put("alternateBackends",[["kind":"Service", "name":APP_NAME_CANARY, "weight":canaryWeight]])
+                                openshift.apply([route])
+                                echo "Route created: "+openshift.selector("route",APP_NAME).object().spec.host
+
                             }
                             /***
                              * Rollout
