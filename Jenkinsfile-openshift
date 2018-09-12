@@ -6,45 +6,20 @@ openshift.withCluster() {
     replicaCount = 3
 }
 
+/* Notes:
+   Errors will stop execution, if Result.status!=0 return by api. This practically useful only in case of synchronous operations:
+   openshift.startBuild(...,"--wait"), rollout.status()
+
+   Rollout.status() streams the output and waits for the pods until Running. Pods should have readiness probes to make this useful.
+
+   DeploymentConfig created by openshift.newApp() has the trigger autimatic=true, so it starts immediately.
+   We create the DCs, let them start, then modify the DC and start the rollout again.
+
+ */
+
 pipeline {
     agent any
     stages {
-
-        /*************
-         * Build
-         *************/
-//        stage("Create build config") {
-//            when{
-//                not { expression {
-//                        openshift.withCluster() {
-//                            return openshift.selector('bc', APP_NAME).exists()
-//                        }
-//                    }
-//                }
-//            }
-//            steps {
-//                echo "Create build config ${APP_NAME} in namespace " + openshift.withCluster() { openshift.project() }
-//                script {
-//                    openshift.withCluster() {
-//                        //Binary build config, so it has no git source, and not started automatically.
-//                        //Must be started manually by giving the 'from-dir'
-//                        openshift.newBuild("--binary", "--name=${APP_NAME}" , "--strategy=docker")
-//                    }
-//                }
-//            }
-//        }
-//
-//        stage("Build image") {
-//            steps {
-//                script {
-//                    openshift.withCluster() {
-//                        buildSelector = openshift.selector('bc', APP_NAME).startBuild("--from-dir=.", "--wait")
-//                        //if (buildSelector.object().status.phase != "Complete") error("Build failed: ${buildSelector.object().status.message}") //Process stops without this
-//                        echo "Build complete: " + buildSelector.names()
-//                    }
-//                }
-//            }
-//        }
 
         /*************
          * Canary deployment
@@ -68,48 +43,29 @@ pipeline {
                                 //Create new app
                                 def newAppSelector = openshift.newApp("$DEPLOY_NAMESPACE/$APP_NAME_CANARY", "--name=${APP_NAME_CANARY}",  "--labels=service=${APP_NAME}")
 
-                                //Optionally add readiness/liveness probes
-                                openshift.set("probe dc/$APP_NAME_CANARY --readiness --get-url=http://:8080/health --initial-delay-seconds=10 --failure-threshold=10 --period-seconds=10")
-                                openshift.set("probe dc/$APP_NAME_CANARY --liveness  --get-url=http://:8080/health --initial-delay-seconds=120 --failure-threshold=10 --period-seconds=10")
+                                //wait for initial rollout
+                                openshift.selector('dc', APP_NAME_CANARY).rollout().status()
 
-                                //wait for rollout
-                                def rolloutResult = openshift.selector('dc', APP_NAME_CANARY).rollout().status()
-                                if (rolloutResult.status != 0) error("First rollout for DeploymentConfig ${APP_NAME_CANARY} failed.")
-                                //wait for pods to start
-                                def latestVersion = openshift.selector('dc', APP_NAME_CANARY).object().status.latestVersion
-                                echo "readyReplicas: "+openshift.selector('rc', "${APP_NAME_CANARY}-${latestVersion}").object().status.readyReplicas
-                                timeout(2) {
-                                    openshift.selector('rc', "${APP_NAME_CANARY}-${latestVersion}").untilEach(1) {
-                                        def rcMap = it.object()
-                                        return (rcMap.status.replicas.equals(rcMap.status.readyReplicas))
-                                    }
-                                }
-                                echo "Canary pods up: " + newAppSelector.narrow("dc").related("pods").names()
-
-                                //Remove automatic trigger from DeploymentConfig. It may stop the first deployment if removed too early
+                                //Remove automatic trigger from DeploymentConfig. It may or may not stop the first deployment if removed too early
                                 openshift.set("triggers", "dc/$APP_NAME_CANARY", "--manual")
-                                //Delete service and is, not needed
+                                //Delete service, not needed
                                 newAppSelector.narrow("svc").delete()
 
-                            } else {
-                                /***
-                                 * Rollout
-                                 **/
-                                openshift.selector('dc', APP_NAME_CANARY).rollout().latest()
-                                //wait for rollout
-                                def rolloutResult = openshift.selector('dc', APP_NAME_CANARY).rollout().status()
-                                if (rolloutResult.status != 0) error("Rollout for DeploymentConfig ${APP_NAME_CANARY} failed.")
-                                //wait for pods to start
-                                def latestVersion = openshift.selector('dc', APP_NAME_CANARY).object().status.latestVersion
-                                echo "readyReplicas: "+openshift.selector('rc', "${APP_NAME_CANARY}-${latestVersion}").object().status.readyReplicas
-                                timeout(2) {
-                                    openshift.selector('rc', "${APP_NAME_CANARY}-${latestVersion}").untilEach(1) {
-                                        def rcMap = it.object()
-                                        return (rcMap.status.replicas.equals(rcMap.status.readyReplicas))
-                                    }
-                                }
-                                echo "Canary pods up: " + openshift.selector('pod',['deployment':"$APP_NAME_CANARY-${latestVersion}"]).names()
+                                //Add readiness/liveness probes. These will be applied after the rollout upcoming.
+                                openshift.set("probe dc/$APP_NAME_CANARY --readiness --get-url=http://:8080/health --initial-delay-seconds=10 --failure-threshold=10 --period-seconds=10")
+                                openshift.set("probe dc/$APP_NAME_CANARY --liveness  --get-url=http://:8080/health --initial-delay-seconds=120 --failure-threshold=10 --period-seconds=10")
                             }
+                            /***
+                             * Rollout
+                             **/
+                            openshift.selector('dc', APP_NAME_CANARY).rollout().latest()
+                            //wait for rollout
+                            openshift.selector('dc', APP_NAME_CANARY).rollout().status()
+
+                            //echo pods
+                            echo "Canary pods up: " + openshift.selector('dc', APP_NAME_CANARY).related("pod").names()
+                            def latestVersion = openshift.selector('dc', APP_NAME_CANARY).object().status.latestVersion
+                            echo "Canary pods up: " + openshift.selector('pod',['deployment':"$APP_NAME_CANARY-${latestVersion}"]).names()
                         }
                     }
                 }
@@ -150,18 +106,11 @@ pipeline {
                 script {
                     openshift.withCluster {
                         openshift.withProject("$DEPLOY_NAMESPACE") {
-                            def rolloutResult = openshift.selector('dc', APP_NAME_CANARY).rollout().undo()
-                            if (rolloutResult.status != 0) error("Rollback for DeploymentConfig ${APP_NAME_CANARY} failed.")
+                            openshift.selector('dc', APP_NAME_CANARY).rollout().undo()
                             //wait for pods to start
                             def latestVersion = openshift.selector('dc', APP_NAME_CANARY).object().status.latestVersion
-                            echo "readyReplicas: "+openshift.selector('rc', "${APP_NAME_CANARY}-${latestVersion}").object().status.readyReplicas
-                            timeout(2) {
-                                openshift.selector('rc', "${APP_NAME_CANARY}-${latestVersion}").untilEach(1) {
-                                    def rcMap = it.object()
-                                    return (rcMap.status.replicas.equals(rcMap.status.readyReplicas))
-                                }
-                            }
-                            echo "Canary pods rolled back: " + openshift.selector('pod',['deployment':"$APP_NAME_CANARY-${latestVersion}"]).names()
+                            echo "Canary pods after rollback: " + openshift.selector('pod',['deployment':"$APP_NAME_CANARY-${latestVersion}"]).names()
+                            //tag back imagestream
                             openshift.tag("$DEPLOY_NAMESPACE/$APP_NAME:latest", "$DEPLOY_NAMESPACE/$APP_NAME_CANARY:latest")
                         }
                     }
@@ -198,58 +147,39 @@ pipeline {
 
                                 //Create new app
                                 def newAppSelector = openshift.newApp("$DEPLOY_NAMESPACE/$APP_NAME", "--name=${APP_NAME}", "--labels=service=${APP_NAME}")
-                                //Optionally add readiness/liveness probes
-                                openshift.set("probe dc/$APP_NAME --readiness --get-url=http://:8080/health --initial-delay-seconds=10 --failure-threshold=10 --period-seconds=10")
-                                openshift.set("probe dc/$APP_NAME --liveness  --get-url=http://:8080/health --initial-delay-seconds=120 --failure-threshold=10 --period-seconds=10")
 
-                                //wait for rollout
-                                def rolloutResult = openshift.selector('dc', APP_NAME).rollout().status()
-                                if (rolloutResult.status != 0) error("First rollout for DeploymentConfig ${APP_NAME} failed.")
+                                //wait for initial rollout
+                                openshift.selector('dc', APP_NAME).rollout().status()
 
                                 //Scale up
                                 openshift.selector('dc', APP_NAME).scale("--replicas=${replicaCount}")
-                                //wait for pods to start
-                                def latestVersion = openshift.selector('dc', APP_NAME).object().status.latestVersion
-                                echo "readyReplicas: "+openshift.selector('rc', "${APP_NAME}-${latestVersion}").object().status.readyReplicas
-                                timeout(3) {
-                                    openshift.selector('rc', "${APP_NAME}-${latestVersion}").untilEach(1) {
-                                        def rcMap = it.object()
-                                        return (rcMap.status.replicas.equals(rcMap.status.readyReplicas))
-                                    }
-                                }
-                                echo "Pods up: " + newAppSelector.narrow("dc").related("pods").names()
 
                                 //Remove automatic trigger from DeploymentConfig
                                 openshift.set("triggers", "dc/$APP_NAME", "--manual")
+
+                                //Add readiness/liveness probes
+                                openshift.set("probe dc/$APP_NAME --readiness --get-url=http://:8080/health --initial-delay-seconds=10 --failure-threshold=10 --period-seconds=10")
+                                openshift.set("probe dc/$APP_NAME --liveness  --get-url=http://:8080/health --initial-delay-seconds=120 --failure-threshold=10 --period-seconds=10")
 
                                 //Modify Service so the canary pods are also included, remove deploymentconfig label from selector
                                 def newService = newAppSelector.narrow("svc").object()
                                 newService.spec.selector = ['service': "$APP_NAME"]
                                 openshift.replace(newService)
+
                                 //Create route
                                 newAppSelector.narrow("svc").expose()
-
-                            } else {
-                                /***
-                                 * Rollout
-                                 **/
-                                openshift.selector('dc', APP_NAME).rollout().latest()
-                                //wait for rollout
-                                def rolloutResult = openshift.selector('dc', APP_NAME).rollout().status()
-                                if (rolloutResult.status != 0) error("Rollout for DeploymentConfig ${APP_NAME} failed.")
-
-                                //wait for pods to start
-                                def latestVersion = openshift.selector('dc', APP_NAME).object().status.latestVersion
-                                echo "readyReplicas: "+openshift.selector('rc', "${APP_NAME}-${latestVersion}").object().status.readyReplicas
-                                timeout(3) {
-                                    openshift.selector('rc', "${APP_NAME}-${latestVersion}").untilEach(1) {
-                                        def rcMap = it.object()
-                                        return (rcMap.status.replicas.equals(rcMap.status.readyReplicas))
-                                    }
-                                }
-                                echo "Pods up: " + openshift.selector('pod',['deployment':"$APP_NAME-${latestVersion}"]).names()
                             }
+                            /***
+                             * Rollout
+                             **/
+                            openshift.selector('dc', APP_NAME).rollout().latest()
+                            //wait for rollout. It waits until pods are running (if readiness probe is set)
+                            openshift.selector('dc', APP_NAME).rollout().status()
 
+                            //echo pods
+                            echo "Pods up: " + openshift.selector('dc', APP_NAME).related("pod").names()
+                            def latestVersion = openshift.selector('dc', APP_NAME).object().status.latestVersion
+                            echo "Pods up: " + openshift.selector('pod',['deployment':"$APP_NAME-${latestVersion}"]).names()
                         }
                     }
                 }
