@@ -7,7 +7,7 @@ import datetime
 import time
 import socket
 
-from flask import Flask, request
+from flask import Flask, request, render_template
 from flask_prometheus import monitor
 
 app = Flask(__name__)
@@ -35,7 +35,8 @@ def index():
 
     timestamp2 = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     app.logger.debug("Finished at: " + timestamp2)
-    return timestamp2 + " " + hostname + " Hello, World!!\n"
+    return render_template('template.html', time=timestamp2, host=hostname)
+    # return timestamp2 + " " + hostname + " Hello, World!!\n"
 
 if __name__ == '__main__':
     monitor(app, port=8000)
