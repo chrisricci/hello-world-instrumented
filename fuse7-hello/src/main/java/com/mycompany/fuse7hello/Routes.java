@@ -48,6 +48,7 @@ public class Routes extends RouteBuilder {
 
                 .route()
                 .setBody(method(this,"setHelloWithName"))
+                .delay(constant("{{my.delay}}"))
                 .removeHeaders("*")
                 .endRest()
         ;
