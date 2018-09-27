@@ -36,6 +36,7 @@ public class Routes extends RouteBuilder {
             .get("hello")
                 .route()
                 .setBody().body(()->new HelloResponse(greeting+" World!"))
+                .delay(constant("{{my.delay}}"))
                 .removeHeaders("*")
                 .endRest()
             //"name" is an Exchange header
