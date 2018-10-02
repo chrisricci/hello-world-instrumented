@@ -116,7 +116,7 @@ pipeline {
 
         stage("Configuring Mirror Traffic") {
             steps {
-                sh 'oc apply -f k8s/istio/hello-world-virtual-service-mirror.yaml'
+                sh 'oc apply -n ${DEPLOY_NAMESPACE} -f k8s/istio/hello-world-virtual-service-mirror.yaml'
             }
         }
 
@@ -140,13 +140,13 @@ pipeline {
             }
             steps{
                 echo "Rollback for canary deployment."
-                sh 'oc apply -f k8s/istio/hello-world-virtual-service-init.yaml'
+                sh 'oc apply -n ${DEPLOY_NAMESPACE} -f k8s/istio/hello-world-virtual-service-init.yaml'
             }
         }
 
         stage("Release Canary to 10%") {
             steps {
-                sh 'oc apply -f k8s/istio/hello-world-virtual-service-canary-90-10.yaml'
+                sh 'oc apply -n ${DEPLOY_NAMESPACE} -f k8s/istio/hello-world-virtual-service-canary-90-10.yaml'
             }
         }
 
@@ -170,13 +170,13 @@ pipeline {
             }
             steps{
                 echo "Rollback for canary deployment."
-                sh 'oc apply -f k8s/istio/hello-world-virtual-service-init.yaml'
+                sh 'oc apply -n ${DEPLOY_NAMESPACE} -f k8s/istio/hello-world-virtual-service-init.yaml'
             }
         }
 
         stage("Releasing Canary to 50%") {
             steps {
-                sh 'oc apply -f k8s/istio/hello-world-virtual-service-canary-50-50.yaml'
+                sh 'oc apply -n ${DEPLOY_NAMESPACE} -f k8s/istio/hello-world-virtual-service-canary-50-50.yaml'
             }
         }
 
@@ -252,7 +252,7 @@ pipeline {
                             echo "Pods up: " + openshift.selector('pod',['deployment':"$APP_NAME-${latestVersion}"]).names()
 
                             // Remove Mirror
-                            sh 'oc apply -f k8s/istio/hello-world-virtual-service-init.yaml'
+                            sh 'oc apply -n ${DEPLOY_NAMESPACE} -f k8s/istio/hello-world-virtual-service-init.yaml'
                         }
                     }
                 }
