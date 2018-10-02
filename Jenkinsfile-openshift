@@ -1,8 +1,8 @@
 openshift.withCluster() {
-    env.APP_NAME = 'hello-world-instrumented'
-    env.APP_NAME_CANARY = "${APP_NAME}-canary"
-    env.CICD_NAMESPACE = 'myproject'
-    env.DEPLOY_NAMESPACE = 'hello'
+    env.APP_NAME = 'hello-world-production'
+    env.APP_NAME_CANARY = "hello-world-canary"
+    env.CICD_NAMESPACE = 'monitoring-demo-cicd'
+    env.DEPLOY_NAMESPACE = 'monitoring-demo-prod'
     replicaCount = 3
     canaryWeight=10 //percentage
 
