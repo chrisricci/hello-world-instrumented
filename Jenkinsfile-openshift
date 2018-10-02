@@ -22,13 +22,6 @@ openshift.withCluster() {
 pipeline {
     agent any
     stages {
-        stage("SCM Checkout") {
-            steps {
-                script {
-                    checkout scm
-                }
-            }
-        }
         /*************
          * Build
          *************/
