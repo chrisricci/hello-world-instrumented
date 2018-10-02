@@ -115,7 +115,9 @@ pipeline {
         }
 
         stage("Mirror Traffic") {
-          sh 'oc apply -f k8s/istio/hello-world-virtual-service-mirror.yaml' 
+            steps {
+                sh 'oc apply -f k8s/istio/hello-world-virtual-service-mirror.yaml'
+            }
         }
 
         /*************
@@ -130,7 +132,7 @@ pipeline {
             }
         }
 
-        stage("Rollback canary"){
+        stage("Rollback Mirror"){
             when{
                 expression {
                     return promoteOrRollback == 'Rollback'
@@ -143,7 +145,9 @@ pipeline {
         }
 
         stage("Release Canary to 10%") {
-            sh 'oc apply -f k8s/istio/hello-world-virtual-service-canary-90-10.yaml'
+            steps {
+                sh 'oc apply -f k8s/istio/hello-world-virtual-service-canary-90-10.yaml'
+            }
         }
 
        /*************
@@ -171,7 +175,9 @@ pipeline {
         }
 
         stage("Release Canary to 50%") {
-            sh 'oc apply -f k8s/istio/hello-world-virtual-service-canary-50-50.yaml'
+            steps {
+                sh 'oc apply -f k8s/istio/hello-world-virtual-service-canary-50-50.yaml'
+            }
         }
 
          /*************
