@@ -1,0 +1,101 @@
+openshift.withCluster() {
+    env.APP_NAME = 'hello-world'
+    env.NAMESPACE = openshift.project()
+    env.PROD_NAMESPACE = NAMESPACE.replaceAll(/cicd/, 'prod')
+    canaryWeight=10
+}
+
+pipeline {
+    agent any
+    stages {
+        stage("SCM Checkout") {
+            steps {
+                script {
+                    checkout scm
+                }
+            }
+        }
+        stage("Build image") {
+            steps {
+                script {
+                    openshift.withCluster() {
+                        buildSelector = openshift.selector('bc', APP_NAME).startBuild("--from-dir .", "--wait", "--follow")
+                        echo "Build complete: " + buildSelector.names()
+                    }
+                }
+            }
+        }
+        stage("Canary deployment") {
+            steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.tag("$NAMESPACE/$APP_NAME:latest", "$PROD_NAMESPACE/$APP_NAME:latest")
+                        openshift.withProject("$PROD_NAMESPACE") {
+                            def dc_selector = openshift.selector('dc', "${APP_NAME}-canary")
+                            if (dc_selector.exists()) {
+                                if (dc_selector.object().status.availableReplicas == 0) {
+                                    def prod_image = openshift.selector('is', APP_NAME).object().status.dockerImageRepository
+                                    openshift.set('image', "dc/${APP_NAME}-canary", "hello-world=${prod_image}:latest")
+                                    openshift.selector('dc', "${APP_NAME}-canary").rollout().latest()
+                                    openshift.selector('dc', "${APP_NAME}-canary").rollout().status()
+                                    def latestVersion = openshift.selector('dc', "${APP_NAME}-canary").object().status.latestVersion
+                                    echo "Canary pod(s) are up: " + openshift.selector('pod',['deployment':"${APP_NAME}-canary-${latestVersion}"])
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        stage("Input to promote") {
+            steps {
+                script {
+                    promoteOrRollback = input message: 'Promote or rollback canary deployment?',
+                            parameters: [choice(name: "Promote or Rollback?", choices: 'Promote\nRollback', description: '')]
+                }
+            }
+        }
+        stage("Rollback canary") {
+            when {
+                expression {
+                    return promoteOrRollback == 'Rollback'
+                }
+            }
+            steps {
+                echo "Rollback for canary deployment."
+                script {
+                    openshift.withCluster() {
+                        openshift.withProject("$PROD_NAMESPACE") {
+                            openshift.selector('dc', "${APP_NAME}-canary").rollout().undo()
+                            openshift.selector('dc', "${APP_NAME}-canary").rollout().status()
+                            def latestVersion = openshift.selector('dc', "${APP_NAME}-canary").object().status.latestVersion
+                            echo "Canary pod(s) are up: " + openshift.selector('pod',['deployment':"${APP_NAME}-canary-${latestVersion}"])
+                        }
+                    }
+                }
+            }
+        }
+        stage("Production deployment") {
+            when {
+                expression {
+                    return promoteOrRollback != 'Rollback'
+                }
+            }
+            steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.withProject("$PROD_NAMESPACE") {
+                            openshift.tag("$NAMESPACE/$APP_NAME:latest", "$PROD_NAMESPACE/$APP_NAME:latest")
+                            def prod_image = openshift.selector('is', APP_NAME).object().status.dockerImageRepository
+                            openshift.set('image', "dc/${APP_NAME}-production", "hello-world=${prod_image}:latest")
+                            openshift.selector('dc', "${APP_NAME}-production").rollout().latest()
+                            openshift.selector('dc', "${APP_NAME}-production").rollout().status()
+                            def latestVersion = openshift.selector('dc', "${APP_NAME}-production").object().status.latestVersion
+                            echo "Canary pod(s) are up: " + openshift.selector('pod',['deployment':"${APP_NAME}-production-${latestVersion}"])
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
