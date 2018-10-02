@@ -114,7 +114,7 @@ pipeline {
             }
         }
 
-        stage("Mirror Traffic") {
+        stage("Configuring Mirror Traffic") {
             steps {
                 sh 'oc apply -f k8s/istio/hello-world-virtual-service-mirror.yaml'
             }
@@ -123,7 +123,7 @@ pipeline {
         /*************
          * Ask to release canary to 10% - when canaryDc.exists()
          *************/
-        stage("Input to promote") {
+        stage("Verify Mirror Traffic") {
             steps {
                 script {
                     promoteOrRollback = input message: 'Release canary deployment to 10% of Traffic?',
@@ -153,7 +153,7 @@ pipeline {
        /*************
          * Ask to release canary to 50% - when canaryDc.exists()
          *************/
-        stage("Input to promote") {
+        stage("Verify Canary") {
             steps {
                 script {
                     promoteOrRollback = input message: 'Release canary deployment to 50% of Traffic?',
@@ -174,7 +174,7 @@ pipeline {
             }
         }
 
-        stage("Release Canary to 50%") {
+        stage("Releasing Canary to 50%") {
             steps {
                 sh 'oc apply -f k8s/istio/hello-world-virtual-service-canary-50-50.yaml'
             }
@@ -183,7 +183,7 @@ pipeline {
          /*************
          * Ask to promote to production
          *************/
-        stage("Input to promote") {
+        stage("Complete Rollout?") {
             steps {
                 script {
                     promoteOrRollback = input message: 'Complete Rollout?',
