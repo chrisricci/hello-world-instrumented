@@ -170,7 +170,7 @@ pipeline {
             }
         }
 
-        stage("Release Canary to 50%) {
+        stage("Release Canary to 50%") {
             sh 'oc apply -f k8s/istio/hello-world-virtual-service-canary-50-50.yaml'
         }
 
