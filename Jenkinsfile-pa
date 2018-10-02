@@ -18,6 +18,9 @@ pipeline {
         stage("Build image") {
             steps {
                 script {
+                    sh "pwd"
+                    sh "ls -ltr"
+                    sh "cat app.py"
                     openshift.withCluster() {
                         buildSelector = openshift.selector('bc', APP_NAME).startBuild("--from-dir .", "--wait", "--follow")
                         echo "Build complete: " + buildSelector.names()
