@@ -146,7 +146,7 @@ pipeline {
                             def latestVersion = openshift.selector('dc', "${APP_NAME}-production").object().status.latestVersion
                             echo "Canary pod(s) are up: " + openshift.selector('pod',['deployment':"${APP_NAME}-production-${latestVersion}"])
                             // Remove Mirror
-                            sh 'oc apply -n ${DEPLOY_NAMESPACE} -f k8s/istio/hello-world-virtual-service-init.yaml'
+                            sh 'oc apply -n ${PROD_NAMESPACE} -f k8s/istio/hello-world-virtual-service-init.yaml'
                         }
                     }
                 }
