@@ -32,13 +32,13 @@ pipeline {
             steps {
                 script {
                     openshift.withCluster() {
-                        openshift.tag("$NAMESPACE/$APP_NAME:latest", "$PROD_NAMESPACE/$APP_NAME:latest")
+                        openshift.tag("$NAMESPACE/$APP_NAME:latest", "$PROD_NAMESPACE/$APP_NAME:canary")
                         openshift.withProject("$PROD_NAMESPACE") {
                             def dc_selector = openshift.selector('dc', "${APP_NAME}-canary")
                             if (dc_selector.exists()) {
                                 if (dc_selector.object().status.availableReplicas == 0) {
                                     def prod_image = openshift.selector('is', APP_NAME).object().status.dockerImageRepository
-                                    openshift.set('image', "dc/${APP_NAME}-canary", "hello-world=${prod_image}:latest")
+                                    openshift.set('image', "dc/${APP_NAME}-canary", "hello-world=${prod_image}:canary")
                                     openshift.selector('dc', "${APP_NAME}-canary").rollout().latest()
                                     openshift.selector('dc', "${APP_NAME}-canary").rollout().status()
                                     def latestVersion = openshift.selector('dc', "${APP_NAME}-canary").object().status.latestVersion
@@ -138,13 +138,13 @@ pipeline {
                 script {
                     openshift.withCluster() {
                         openshift.withProject("$PROD_NAMESPACE") {
-                            openshift.tag("$NAMESPACE/$APP_NAME:latest", "$PROD_NAMESPACE/$APP_NAME:latest")
+                            openshift.tag("$NAMESPACE/$APP_NAME:latest", "$PROD_NAMESPACE/$APP_NAME:prod")
                             def prod_image = openshift.selector('is', APP_NAME).object().status.dockerImageRepository
-                            openshift.set('image', "dc/${APP_NAME}-production", "hello-world=${prod_image}:latest")
+                            openshift.set('image', "dc/${APP_NAME}-production", "hello-world=${prod_image}:prod")
                             openshift.selector('dc', "${APP_NAME}-production").rollout().latest()
                             openshift.selector('dc', "${APP_NAME}-production").rollout().status()
                             def latestVersion = openshift.selector('dc', "${APP_NAME}-production").object().status.latestVersion
-                            echo "Canary pod(s) are up: " + openshift.selector('pod',['deployment':"${APP_NAME}-production-${latestVersion}"])
+                            echo "Production pod(s) are up: " + openshift.selector('pod',['deployment':"${APP_NAME}-production-${latestVersion}"])
                             // Remove Mirror
                             sh 'oc apply -n ${PROD_NAMESPACE} -f k8s/istio/hello-world-virtual-service-init.yaml'
                         }
