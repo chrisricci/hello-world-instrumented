@@ -47,34 +47,84 @@ pipeline {
                 }
             }
         }
-        stage("Input to promote") {
+        stage("Configuring Mirror Traffic") {
+            steps {
+                sh 'oc apply -n ${DEPLOY_NAMESPACE} -f k8s/istio/hello-world-virtual-service-mirror.yaml'
+            }
+        }
+
+        /*************
+         * Ask to release canary to 10% - when canaryDc.exists()
+         *************/
+        stage("Verify Mirror Traffic") {
             steps {
                 script {
-                    promoteOrRollback = input message: 'Promote or rollback canary deployment?',
+                    promoteOrRollback = input message: 'Release canary deployment to 10% of Traffic?',
                             parameters: [choice(name: "Promote or Rollback?", choices: 'Promote\nRollback', description: '')]
                 }
             }
         }
-        stage("Rollback canary") {
-            when {
+        
+        stage("Rollback Mirror"){
+            when{
                 expression {
                     return promoteOrRollback == 'Rollback'
                 }
             }
-            steps {
+            steps{
                 echo "Rollback for canary deployment."
+                sh 'oc apply -n ${DEPLOY_NAMESPACE} -f k8s/istio/hello-world-virtual-service-init.yaml'
+            }
+        }
+
+        stage("Release Canary to 10%") {
+            steps {
+                sh 'oc apply -n ${DEPLOY_NAMESPACE} -f k8s/istio/hello-world-virtual-service-canary-90-10.yaml'
+            }
+        }
+        
+        /*************
+         * Ask to release canary to 50% - when canaryDc.exists()
+         *************/
+        stage("Verify Canary") {
+            steps {
                 script {
-                    openshift.withCluster() {
-                        openshift.withProject("$PROD_NAMESPACE") {
-                            openshift.selector('dc', "${APP_NAME}-canary").rollout().undo()
-                            openshift.selector('dc', "${APP_NAME}-canary").rollout().status()
-                            def latestVersion = openshift.selector('dc', "${APP_NAME}-canary").object().status.latestVersion
-                            echo "Canary pod(s) are up: " + openshift.selector('pod',['deployment':"${APP_NAME}-canary-${latestVersion}"])
-                        }
-                    }
+                    promoteOrRollback = input message: 'Release canary deployment to 50% of Traffic?',
+                            parameters: [choice(name: "Promote or Rollback?", choices: 'Promote\nRollback', description: '')]
                 }
             }
         }
+
+        stage("Rollback canary"){
+            when{
+                expression {
+                    return promoteOrRollback == 'Rollback'
+                }
+            }
+            steps{
+                echo "Rollback for canary deployment."
+                sh 'oc apply -n ${DEPLOY_NAMESPACE} -f k8s/istio/hello-world-virtual-service-init.yaml'
+            }
+        }
+
+        stage("Releasing Canary to 50%") {
+            steps {
+                sh 'oc apply -n ${DEPLOY_NAMESPACE} -f k8s/istio/hello-world-virtual-service-canary-50-50.yaml'
+            }
+        }
+
+         /*************
+         * Ask to promote to production
+         *************/
+        stage("Complete Rollout?") {
+            steps {
+                script {
+                    promoteOrRollback = input message: 'Complete Rollout?',
+                            parameters: [choice(name: "Complete Rollout or Rollback?", choices: 'Promote\nRollback', description: '')]
+                }
+            }
+        }
+
         stage("Production deployment") {
             when {
                 expression {
@@ -92,6 +142,8 @@ pipeline {
                             openshift.selector('dc', "${APP_NAME}-production").rollout().status()
                             def latestVersion = openshift.selector('dc', "${APP_NAME}-production").object().status.latestVersion
                             echo "Canary pod(s) are up: " + openshift.selector('pod',['deployment':"${APP_NAME}-production-${latestVersion}"])
+                            // Remove Mirror
+                            sh 'oc apply -n ${DEPLOY_NAMESPACE} -f k8s/istio/hello-world-virtual-service-init.yaml'
                         }
                     }
                 }
