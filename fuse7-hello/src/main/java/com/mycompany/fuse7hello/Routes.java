@@ -30,11 +30,13 @@ public class Routes extends RouteBuilder {
         ;
 
         from("timer:myTimer?period=2000&repeatCount=3")
+            .routeId("timer")
             .log("Hello World!");
 
         rest()
             .get("hello")
                 .route()
+                .routeId("hello")
                 .setBody().body(()->new HelloResponse(greeting+" World!"))
                 .delay(constant("{{my.delay}}"))
                 .removeHeaders("*")
@@ -47,6 +49,7 @@ public class Routes extends RouteBuilder {
                 .responseMessage().code(200).responseModel(HelloResponse.class).endResponseMessage() //OK
 
                 .route()
+                .routeId("hello-name")
                 .setBody(method(this,"setHelloWithName"))
                 .delay(constant("{{my.delay}}"))
                 .removeHeaders("*")
