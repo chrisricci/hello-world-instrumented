@@ -19,5 +19,5 @@ spec:
         subset: production
       weight: 100
     retries:
-      attempts: 3
-      perTryTimeout: 2s
+      attempts: 7
+      perTryTimeout: 10s
