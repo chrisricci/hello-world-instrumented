@@ -25,5 +25,5 @@ spec:
         subset: canary 
       weight: 50
     retries:
-      attempts: 3
-      perTryTimeout: 2s
+      attempts: 7
+      perTryTimeout: 10s
