@@ -24,3 +24,6 @@ spec:
           number: 8080
         subset: canary 
       weight: 50
+    retries:
+      attempts: 3
+      perTryTimeout: 2s
