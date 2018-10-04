@@ -1,2 +1,4 @@
-flask/
-.idea/
+**/flask/
+**/.idea/
+**/target
+**/*.iml
