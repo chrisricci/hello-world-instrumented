@@ -39,7 +39,7 @@ public class Routes extends RouteBuilder {
             .get("hello")
                 .route()
                 .routeId("hello")
-                .setBody().body(()->new HelloResponse(new Timestamp(new Date().getTime()) + " " + greeting +" World!\n"))
+                .setBody().body(()->new HelloResponse(new Timestamp(new Date().getTime()) + " " + greeting +" World!"))
                 .delay(constant("{{my.delay}}"))
                 .removeHeaders("*")
                 .endRest()
