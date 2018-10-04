@@ -8,6 +8,8 @@ import org.apache.camel.model.rest.RestBindingMode;
 import org.apache.camel.model.rest.RestParamType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import java.util.Date;
+import java.sql.Timestamp;
 
 @Component
 public class Routes extends RouteBuilder {
