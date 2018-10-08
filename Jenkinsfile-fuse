@@ -1,5 +1,5 @@
 openshift.withCluster() {
-    env.APP_NAME = 'hello-world'
+    env.APP_NAME = 'hello-world-fuse'
     env.NAMESPACE = openshift.project()
     env.PROD_NAMESPACE = NAMESPACE.replaceAll(/cicd/, 'prod')
     canaryWeight=10
@@ -18,11 +18,8 @@ pipeline {
         stage("Build image") {
             steps {
                 script {
-                    sh "pwd"
-                    sh "ls -ltr"
-                    sh "cat app.py"
                     openshift.withCluster() {
-                        buildSelector = openshift.selector('bc', APP_NAME).startBuild("--from-dir .", "--wait", "--follow")
+                        buildSelector = openshift.selector('bc', APP_NAME).startBuild("--from-dir fuse7-hello/", "--wait", "--follow")
                         echo "Build complete: " + buildSelector.names()
                     }
                 }
