@@ -151,8 +151,10 @@
                             <execution>
                                 <goals>
                                     <goal>resource</goal>
-                                    <goal>build</goal> <!-- Create image and image stream -->
-                                    <goal>deploy</goal><!-- Create deployment config and service -->
+                                    <!-- Create image and image stream -->
+                                    <!--<goal>build</goal>-->
+                                    <!-- Create deployment config and service -->
+                                    <goal>deploy</goal>
                                 </goals>
                             </execution>
                         </executions>
