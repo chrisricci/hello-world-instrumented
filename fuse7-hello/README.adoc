@@ -1,6 +1,10 @@
 ## Simple HelloWorld REST api using Fuse7.1 BOM
 The projects build executable Spring Boot fat jar and also can be run in OpenShift.
 
+The http://localhost:8080/api/hello endpoint calls a downstream app and uses it's text response as "message".
+Set the called service url as property in configmap:
+downstream.url=http://hello-world-istio/
+
 ### Build and run
 The Red Hat maven repos are configured in ../configuration/settings.xml
 
