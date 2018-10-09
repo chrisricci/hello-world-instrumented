@@ -1,7 +1,9 @@
 package com.mycompany.fuse7hello;
 
 
+import org.apache.camel.Exchange;
 import org.apache.camel.Header;
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.language.Simple;
 import org.apache.camel.model.rest.RestBindingMode;
@@ -39,7 +41,9 @@ public class Routes extends RouteBuilder {
             .get("hello")
                 .route()
                 .routeId("hello")
-                .setBody().body(()->new HelloResponse(new Timestamp(new Date().getTime()) + " " + greeting +" World!"))
+                .to("direct:calldownstream")
+                .convertBodyTo(String.class)
+                .setBody().body((b)->new HelloResponse(b.toString()))
                 .delay(constant("{{my.delay}}"))
                 .removeHeaders("*")
                 .endRest()
@@ -56,6 +60,17 @@ public class Routes extends RouteBuilder {
                 .delay(constant("{{my.delay}}"))
                 .removeHeaders("*")
                 .endRest()
+        ;
+
+        from("direct:calldownstream")
+            .routeId("calldownstream")
+            .removeHeaders("*", Exchange.BREADCRUMB_ID)
+            .setBody(constant(null))
+            .setHeader(Exchange.HTTP_URI).constant("{{downstream.url}}")
+            .setHeader("CamelHttpMethod").constant("GET")
+            .to("http4:calldownstream?synchronous=true")
+            .log(LoggingLevel.DEBUG,log,"Response received: ${body}")
+            .removeHeaders("*", Exchange.BREADCRUMB_ID)
         ;
 
     }
