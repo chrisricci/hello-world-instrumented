@@ -18,6 +18,12 @@ spec:
           number: 8080
         subset: production
       weight: 100
+    - destination:
+        host: hello-world-istio
+        port:
+          number: 8080
+        subset: canary 
+      weight: 0
     retries:
       attempts: 7
       perTryTimeout: 10s
