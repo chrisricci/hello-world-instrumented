@@ -51,7 +51,6 @@ pipeline {
             steps {
                 script {
                    openshift.withCluster() {
-                        openshift.tag("$NAMESPACE/$APP_NAME:latest", "$PROD_NAMESPACE/$APP_NAME:canary")
                         openshift.withProject("$NAMESPACE") {
                             def configMap = openshift.selector('configmap', 'istio-subdomain').object()
                             subdomain = configMap.data["subdomain"]
