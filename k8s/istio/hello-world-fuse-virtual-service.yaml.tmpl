@@ -1,0 +1,21 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: hello-world-fuse
+spec:
+  gateways:
+  - hello-world-gateway
+  hosts:
+  - hello-world-istio.apps.istio.ocp.riccic.com
+  http:
+  - match:
+    - uri:
+        exact: /api/hello
+    route:
+    - destination:
+        host: fuse7-hello
+        port:
+          number: 8080
+    retries:
+      attempts: 7
+      perTryTimeout: 10s

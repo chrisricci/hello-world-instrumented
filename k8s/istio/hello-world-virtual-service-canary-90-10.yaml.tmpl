@@ -6,23 +6,24 @@ spec:
   gateways:
   - hello-world-gateway
   hosts:
-  - hello-world-istio.apps.istio.aws.event-cloud.net
+  - hello-world-istio.apps.istio.ocp.riccic.com
   http:
   - match:
     - uri:
         exact: /
-    mirror:
-      host: hello-world-istio
-      port:
-        number: 8080
-      subset: canary
     route:
     - destination:
         host: hello-world-istio
         port:
           number: 8080
         subset: production
-      weight: 100
+      weight: 90
+    - destination:
+        host: hello-world-istio
+        port:
+          number: 8080
+        subset: canary 
+      weight: 10
     retries:
       attempts: 10
       perTryTimeout: 12s
