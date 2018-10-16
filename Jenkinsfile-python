@@ -3,11 +3,9 @@ openshift.withCluster() {
     env.NAMESPACE = openshift.project()
     env.PROD_NAMESPACE = NAMESPACE.replaceAll(/cicd/, 'prod')
     canaryWeight=10
-    // openshift.withProject("$NAMESPACE") {
-        def configMap = openshift.selector('configmap', 'istio-app-subdomain').object()
-        subdomain = configMap.data["subdomain"]
-        echo "Subdomain ${subdomain}"
-//}
+    def configMap = openshift.selector('configmap', 'istio-app-subdomain').object()
+    subdomain = configMap.data["subdomain"]
+    echo "Subdomain ${subdomain}"
 }
 
 pipeline {
@@ -79,12 +77,14 @@ pipeline {
             }
             steps{
                 echo "Rollback for canary deployment."
+                sh "sed 's/<istio-subdomain>/istio.ocp.riccic.com/g' k8s/istio/hello-world-virtual-service-init.yaml.tmpl > k8s/istio/hello-world-virtual-service-init.yaml"
                 sh 'oc apply -n ${PROD_NAMESPACE} -f k8s/istio/hello-world-virtual-service-init.yaml'
             }
         }
 
         stage("Release Canary to 10%") {
             steps {
+                sh "sed 's/<istio-subdomain>/istio.ocp.riccic.com/g' k8s/istio/hello-world-virtual-service-canary-90-10.yaml.tmpl > k8s/istio/hello-world-virtual-service-canary-90-10.yaml"
                 sh 'oc apply -n ${PROD_NAMESPACE} -f k8s/istio/hello-world-virtual-service-canary-90-10.yaml'
             }
         }
@@ -109,12 +109,14 @@ pipeline {
             }
             steps{
                 echo "Rollback for canary deployment."
+                sh "sed 's/<istio-subdomain>/istio.ocp.riccic.com/g' k8s/istio/hello-world-virtual-service-init.yaml.tmpl > k8s/istio/hello-world-virtual-service-init.yaml"
                 sh 'oc apply -n ${PROD_NAMESPACE} -f k8s/istio/hello-world-virtual-service-init.yaml'
             }
         }
 
         stage("Releasing Canary to 50%") {
             steps {
+                sh "sed 's/<istio-subdomain>/istio.ocp.riccic.com/g' k8s/istio/hello-world-virtual-service-canary-50-50.yaml.tmpl > k8s/istio/hello-world-virtual-service-canary-50-50.yaml"
                 sh 'oc apply -n ${PROD_NAMESPACE} -f k8s/istio/hello-world-virtual-service-canary-50-50.yaml'
             }
         }
@@ -149,6 +151,7 @@ pipeline {
                             def latestVersion = openshift.selector('dc', "${APP_NAME}-production").object().status.latestVersion
                             echo "Production pod(s) are up: " + openshift.selector('pod',['deployment':"${APP_NAME}-production-${latestVersion}"])
                             // Remove Mirror
+                            sh "sed 's/<istio-subdomain>/istio.ocp.riccic.com/g' k8s/istio/hello-world-virtual-service-init.yaml.tmpl > k8s/istio/hello-world-virtual-service-init.yaml"
                             sh 'oc apply -n ${PROD_NAMESPACE} -f k8s/istio/hello-world-virtual-service-init.yaml'
                         }
                     }
