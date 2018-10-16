@@ -145,7 +145,7 @@ pipeline {
                         openshift.withProject("$PROD_NAMESPACE") {
                             openshift.tag("$NAMESPACE/$APP_NAME:latest", "$PROD_NAMESPACE/$APP_NAME:prod")
                             def prod_image = openshift.selector('is', APP_NAME).object().status.dockerImageRepository
-                            openshift.set('image', "dc/${APP_NAME}-production", "hello-world=${prod_image}:prod")
+                            openshift.set('image', "dc/${APP_NAME}-production", "default-container=${prod_image}:prod")
                             openshift.selector('dc', "${APP_NAME}-production").rollout().latest()
                             openshift.selector('dc', "${APP_NAME}-production").rollout().status()
                             def latestVersion = openshift.selector('dc', "${APP_NAME}-production").object().status.latestVersion
