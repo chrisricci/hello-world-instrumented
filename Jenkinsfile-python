@@ -52,7 +52,7 @@ pipeline {
                 script {
                    openshift.withCluster() {
                         openshift.withProject("$NAMESPACE") {
-                            def configMap = openshift.selector('configmap', 'istio-subdomain').object()
+                            def configMap = openshift.selector('configmap', 'istio-app-subdomain').object()
                             subdomain = configMap.data["subdomain"]
                             echo "Subdomain ${subdomain}"
                         }
