@@ -3,6 +3,11 @@ openshift.withCluster() {
     env.NAMESPACE = openshift.project()
     env.PROD_NAMESPACE = NAMESPACE.replaceAll(/cicd/, 'prod')
     canaryWeight=10
+    // openshift.withProject("$NAMESPACE") {
+        def configMap = openshift.selector('configmap', 'istio-app-subdomain').object()
+        subdomain = configMap.data["subdomain"]
+        echo "Subdomain ${subdomain}"
+//}
 }
 
 pipeline {
@@ -49,15 +54,6 @@ pipeline {
         }
         stage("Configuring Mirror Traffic") {
             steps {
-                script {
-                   openshift.withCluster() {
-                        openshift.withProject("$NAMESPACE") {
-                            def configMap = openshift.selector('configmap', 'istio-app-subdomain').object()
-                            subdomain = configMap.data["subdomain"]
-                            echo "Subdomain ${subdomain}"
-                        }
-                   }
-                }
                 sh "sed 's/<istio-subdomain>/istio.ocp.riccic.com/g' k8s/istio/hello-world-virtual-service-mirror.yaml.tmpl > k8s/istio/hello-world-virtual-service-mirror.yaml"
                 sh 'oc apply -n ${PROD_NAMESPACE} -f k8s/istio/hello-world-virtual-service-mirror.yaml'
             }
