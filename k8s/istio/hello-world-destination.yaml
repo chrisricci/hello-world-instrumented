@@ -7,7 +7,7 @@ spec:
   subsets:
   - name: production
     labels:
-      env: production
+      version: production
   - name: canary
     labels:
-      env: canary
+      version: canary
