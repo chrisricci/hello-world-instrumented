@@ -1,0 +1,70 @@
+kind: Template
+apiVersion: v1
+metadata:
+  name: cicd-project-template
+objects:
+  - apiVersion: build.openshift.io/v1
+    kind: BuildConfig
+    metadata:
+      labels:
+        build: hello-world
+      name: hello-world
+    spec:
+      output:
+        to:
+          kind: ImageStreamTag
+          name: hello-world:latest
+      source:
+        git:
+          ref: ${BRANCH}
+          uri: ${SOURCE_REPOSITORY_URL}
+        type: Git
+      strategy:
+        dockerStrategy:
+          dockerfilePath: Dockerfile
+        type: Docker
+  - apiVersion: build.openshift.io/v1
+    kind: BuildConfig
+    metadata:
+      labels:
+        build: hello-world-pipeline
+      name: hello-world-pipeline
+    spec:
+      source:
+        git:
+          ref: ${BRANCH}
+          uri: ${SOURCE_REPOSITORY_URL}
+        type: Git
+      strategy:
+        jenkinsPipelineStrategy:
+          jenkinsfilePath: Jenkinsfile
+        type: JenkinsPipeline
+  - apiVersion: v1
+    data:
+      subdomain: ${APP_SUBDOMAIN}
+    kind: ConfigMap
+    metadata:
+      name: istio-app-subdomain
+  - apiVersion: image.openshift.io/v1
+    kind: ImageStream
+    metadata:
+      name: hello-world
+  - apiVersion: image.openshift.io/v1
+    kind: ImageStream
+    metadata:
+      name: python
+parameters:
+  - name: SOURCE_REPOSITORY_URL 
+    displayName: Source Repository URL 
+    description: The URL of the repository with your application source code 
+    value: https://github.com/cricci82/hello-world-instrumented.git 
+    required: true 
+  - name: BRANCH 
+    displayName: Branch 
+    description: Source Repository Branch
+    value: master
+    required: true
+  - name: APP_SUBDOMAIN
+    displayName: Application Sub Domain
+    description:  Application Sub Domain
+    required: true

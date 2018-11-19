@@ -1,0 +1,137 @@
+kind: Template
+apiVersion: v1
+metadata:
+  name: hello-world-project-template
+objects:
+  - apiVersion: apps.openshift.io/v1
+    kind: DeploymentConfig
+    metadata:
+      name: hello-world-canary
+    spec:
+      replicas: 2
+      selector:
+        deployment-config.name: hello-world-canary
+      template:
+        metadata:
+          annotations:
+            sidecar.istio.io/inject: "true"
+          labels:
+            app: hello-world
+            deployment-config.name: hello-world-canary
+            version: canary
+        spec:
+          containers:
+          - image: hello-world
+            name: default-container
+      triggers:
+      - type: ConfigChange
+  - apiVersion: apps.openshift.io/v1
+    kind: DeploymentConfig
+    metadata:
+      name: hello-world-production
+    spec:
+      replicas: 2
+      selector:
+        deployment-config.name: hello-world-production
+      template:
+        metadata:
+          annotations:
+            sidecar.istio.io/inject: "true"
+          labels:
+            app: hello-world
+            deployment-config.name: hello-world-production
+            version: production
+        spec:
+          containers:
+          - image: hello-world
+            name: default-container
+      test: false
+      triggers:
+      - type: ConfigChange
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: hello-world
+      name: hello-world-istio
+    spec:
+      ports:
+      - name: web
+        port: 8080
+        protocol: TCP
+        targetPort: 8080
+      - name: metrics
+        port: 8000
+        protocol: TCP
+        targetPort: 8000
+      selector:
+        app: hello-world
+      type: LoadBalancer
+  - apiVersion: image.openshift.io/v1
+    kind: ImageStream
+    metadata:
+      name: hello-world
+  - apiVersion: operators.coreos.com/v1alpha1
+    kind: Subscription
+    metadata:
+      generateName: prometheus-
+    spec:
+      source: rh-operators
+      name: prometheus
+      startingCSV: prometheusoperator.0.22.2
+      channel: preview
+  - apiVersion: monitoring.coreos.com/v1
+    kind: Prometheus
+    metadata:
+      labels:
+        prometheus: prometheus-hello-world
+      name: hello-world-prometheus
+    spec:
+      alerting:
+        alertmanagers:
+          - name: alertmanager-operated
+            namespace: "{.metadata.namespace}"
+            port: web
+      replicas: 2
+      ruleSelector:
+        matchLabels:
+          prometheus: hello-world
+          role: alert-rules
+      serviceAccountName: prometheus-k8s
+      serviceMonitorSelector:
+        matchLabels:
+          k8s-app: hello-world
+      version: v2.3.2 
+  - apiVersion: monitoring.coreos.com/v1
+    kind: ServiceMonitor
+    metadata:
+      labels:
+        k8s-app: hello-world
+      name: hello-world-monitor
+    spec:
+      endpoints:
+        - interval: 5s
+          port: metrics
+      selector:
+        matchLabels:
+          app: hello-world
+  - apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      labels:
+        prometheus: hello-world
+        role: alert-rules
+      name: prometheus-rule
+    spec:
+      groups:
+        - name: hello-world-latency-rules
+          rules:
+            - alert: APIHighRequestLatency
+              annotations:
+                description: >-
+                  `{{ $labels.instance }}` has a median request latency above 1s
+                  (current value: `{{ $value }}`s)
+                summary: 'High request latency on `{{ $labels.instance }}`'
+              expr: >-
+                rate(flask_request_latency_seconds_sum[10s]) /
+                rate(flask_request_latency_seconds_count[10s]) > 1   
