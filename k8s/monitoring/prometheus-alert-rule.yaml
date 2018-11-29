@@ -2,8 +2,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
   labels:
-    prometheus: hello-world
-    role: alert-rules
+    prometheus-name: hello-world-prometheus
   name: prometheus-rule
 spec:
   groups:
