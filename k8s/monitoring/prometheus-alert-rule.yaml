@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    prometheus: hello-world
+    role: alert-rules
+  name: prometheus-rule
+spec:
+  groups:
+    - name: hello-world-latency-rules
+      rules:
+        - alert: APIHighRequestLatency
+          annotations:
+            description: >-
+              `{{ $labels.instance }}` has a median request latency above 1s
+              (current value: `{{ $value }}`s)
+            summary: 'High request latency on `{{ $labels.instance }}`'
+          expr: >-
+            rate(flask_request_latency_seconds_sum[10s]) /
+            rate(flask_request_latency_seconds_count[10s]) > 1   

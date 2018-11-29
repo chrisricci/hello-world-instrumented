@@ -1,0 +1,22 @@
+apiVersion: monitoring.coreos.com/v1
+  kind: Prometheus
+  metadata:
+    labels:
+      prometheus: prometheus-hello-world
+    name: hello-world-prometheus
+  spec:
+    alerting:
+      alertmanagers:
+        - name: alertmanager-operated
+          namespace: {.metadata.namespace}
+          port: web
+    replicas: 2
+    ruleSelector:
+      matchLabels:
+        prometheus: hello-world
+        role: alert-rules
+    serviceAccountName: prometheus-k8s
+    serviceMonitorSelector:
+      matchLabels:
+        k8s-app: hello-world
+    version: v2.3.2 
