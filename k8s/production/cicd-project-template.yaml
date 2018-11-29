@@ -30,6 +30,9 @@ objects:
         build: hello-world-pipeline
       name: hello-world-pipeline
     spec:
+      resources:
+        limits:
+          cpu: "1" 
       source:
         git:
           ref: ${BRANCH}
