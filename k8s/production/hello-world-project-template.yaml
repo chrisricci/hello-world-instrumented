@@ -25,12 +25,11 @@ objects:
             name: default-container
       triggers:
         - imageChangeParams:
-            automatic: true
             containerNames:
               - default-container
             from:
-          kind: ImageStreamTag
-          name: 'hello-world:canary'
+              kind: ImageStreamTag
+              name: 'hello-world:canary'
           type: ImageChange
         - type: ConfigChange
   - apiVersion: apps.openshift.io/v1
@@ -56,12 +55,11 @@ objects:
       test: false
       triggers:
         - imageChangeParams:
-            automatic: true
             containerNames:
               - default-container
             from:
-          kind: ImageStreamTag
-          name: 'hello-world:canary'
+              kind: ImageStreamTag
+              name: 'hello-world:canary'
           type: ImageChange
         - type: ConfigChange
   - apiVersion: v1
