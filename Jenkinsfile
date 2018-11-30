@@ -38,7 +38,7 @@ pipeline {
                             if (dc_selector.exists()) {
                                 // if (dc_selector.object().status.availableReplicas == 0) {
                                 def prod_image = openshift.selector('is', APP_NAME).object().status.dockerImageRepository
-                                openshift.set('image', "dc/${APP_NAME}-canary", "default-container=${prod_image}:canary")
+                                openshift.set('image', "dc/${APP_NAME}-canary", "hello-world-canary=${prod_image}:canary")
                                 openshift.selector('dc', "${APP_NAME}-canary").rollout().latest()
                                 openshift.selector('dc', "${APP_NAME}-canary").rollout().status()
                                 def latestVersion = openshift.selector('dc', "${APP_NAME}-canary").object().status.latestVersion
@@ -145,7 +145,7 @@ pipeline {
                         openshift.withProject("$PROD_NAMESPACE") {
                             openshift.tag("$NAMESPACE/$APP_NAME:latest", "$PROD_NAMESPACE/$APP_NAME:prod")
                             def prod_image = openshift.selector('is', APP_NAME).object().status.dockerImageRepository
-                            openshift.set('image', "dc/${APP_NAME}-production", "default-container=${prod_image}:prod")
+                            openshift.set('image', "dc/${APP_NAME}-production", "hello-world-prod=${prod_image}:prod")
                             openshift.selector('dc', "${APP_NAME}-production").rollout().latest()
                             openshift.selector('dc', "${APP_NAME}-production").rollout().status()
                             def latestVersion = openshift.selector('dc', "${APP_NAME}-production").object().status.latestVersion
