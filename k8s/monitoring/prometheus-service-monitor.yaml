@@ -10,4 +10,4 @@ spec:
       port: metrics
   selector:
     matchLabels:
-      app: hello-world
+      app: hello-world-istio
