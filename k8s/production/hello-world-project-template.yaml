@@ -24,7 +24,15 @@ objects:
           - image: hello-world
             name: default-container
       triggers:
-      - type: ConfigChange
+        - imageChangeParams:
+            automatic: true
+            containerNames:
+              - default-container
+            from:
+          kind: ImageStreamTag
+          name: 'hello-world:canary'
+          type: ImageChange
+        - type: ConfigChange
   - apiVersion: apps.openshift.io/v1
     kind: DeploymentConfig
     metadata:
@@ -47,7 +55,15 @@ objects:
             name: default-container
       test: false
       triggers:
-      - type: ConfigChange
+        - imageChangeParams:
+            automatic: true
+            containerNames:
+              - default-container
+            from:
+          kind: ImageStreamTag
+          name: 'hello-world:canary'
+          type: ImageChange
+        - type: ConfigChange
   - apiVersion: v1
     kind: Service
     metadata:
