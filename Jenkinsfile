@@ -65,7 +65,7 @@ pipeline {
                             def dc_selector = openshift.selector('dc', "${APP_NAME}-canary")
                             if (dc_selector.exists()) {
                                 echo "Setting dc/${APP_NAME}-canary to ${PROD_NAMESPACE}/${APP_NAME}:canary"
-                                openshift.set('image', "dc/${APP_NAME}-canary", "hello-world-canary=${PROD_NAMESPACE}/${APP_NAME}:canary", "source=imagestreamtag")
+                                openshift.set('image', "dc/${APP_NAME}-canary", "hello-world-canary=${PROD_NAMESPACE}/${APP_NAME}:canary", "--source=imagestreamtag")
                                 openshift.selector('dc', "${APP_NAME}-canary").rollout().latest()
                                 openshift.selector('dc', "${APP_NAME}-canary").rollout().status()
                                 def latestVersion = openshift.selector('dc', "${APP_NAME}-canary").object().status.latestVersion
