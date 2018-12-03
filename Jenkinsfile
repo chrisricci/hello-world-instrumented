@@ -30,29 +30,31 @@ pipeline {
                 }
             }
         }
-        #stage("Canary deployment") {
-        #    steps {
-        #        script {
-        #            openshift.withCluster() {
-        #                openshift.tag("$NAMESPACE/$APP_NAME:latest", "$PROD_NAMESPACE/$APP_NAME:canary")
-        #                openshift.withProject("$PROD_NAMESPACE") {
-        #                    def dc_selector = openshift.selector('dc', "${APP_NAME}-canary")
-        #                    if (dc_selector.exists()) {
-        #                        // if (dc_selector.object().status.availableReplicas == 0) {
-        #                        def prod_image = openshift.selector('is', APP_NAME).object().status.dockerImageRepository
-        #                        echo "Prod Image is $prod_image"
-        #                        openshift.set('image', "dc/${APP_NAME}-canary", "hello-world-canary=${prod_image}:canary")
-        #                        openshift.selector('dc', "${APP_NAME}-canary").rollout().latest()
-        #                        openshift.selector('dc', "${APP_NAME}-canary").rollout().status()
-        #                        def latestVersion = openshift.selector('dc', "${APP_NAME}-canary").object().status.latestVersion
-        #                        echo "Canary pod(s) are up: " + openshift.selector('pod',['deployment':"${APP_NAME}-canary-${latestVersion}"])
-        #                       // }
-        #                    }
-        #                }
-        #            }
-        #        }
-        #    }
-        #}
+        /**
+        stage("Canary deployment") {
+            steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.tag("$NAMESPACE/$APP_NAME:latest", "$PROD_NAMESPACE/$APP_NAME:canary")
+                        openshift.withProject("$PROD_NAMESPACE") {
+                            def dc_selector = openshift.selector('dc', "${APP_NAME}-canary")
+                            if (dc_selector.exists()) {
+                                // if (dc_selector.object().status.availableReplicas == 0) {
+                                def prod_image = openshift.selector('is', APP_NAME).object().status.dockerImageRepository
+                                echo "Prod Image is $prod_image"
+                                openshift.set('image', "dc/${APP_NAME}-canary", "hello-world-canary=${prod_image}:canary")
+                                openshift.selector('dc', "${APP_NAME}-canary").rollout().latest()
+                                openshift.selector('dc', "${APP_NAME}-canary").rollout().status()
+                                def latestVersion = openshift.selector('dc', "${APP_NAME}-canary").object().status.latestVersion
+                                echo "Canary pod(s) are up: " + openshift.selector('pod',['deployment':"${APP_NAME}-canary-${latestVersion}"])
+                               // }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        **/
         stage("Canary deployment") {
             steps {
                 script {
