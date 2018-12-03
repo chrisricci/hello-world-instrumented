@@ -143,9 +143,9 @@ pipeline {
                 script {
                     openshift.withCluster() {
                         openshift.withProject("$PROD_NAMESPACE") {
-                            openshift.tag("$NAMESPACE/$APP_NAME:latest", "$PROD_NAMESPACE/$APP_NAME:prod")
+                            openshift.tag("$NAMESPACE/$APP_NAME:latest", "$PROD_NAMESPACE/$APP_NAME:production")
                             def prod_image = openshift.selector('is', APP_NAME).object().status.dockerImageRepository
-                            openshift.set('image', "dc/${APP_NAME}-production", "hello-world-production=${prod_image}:prod")
+                            openshift.set('image', "dc/${APP_NAME}-production", "hello-world-production=${prod_image}:production")
                             openshift.selector('dc', "${APP_NAME}-production").rollout().latest()
                             openshift.selector('dc', "${APP_NAME}-production").rollout().status()
                             def latestVersion = openshift.selector('dc', "${APP_NAME}-production").object().status.latestVersion
