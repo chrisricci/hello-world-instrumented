@@ -150,6 +150,7 @@ pipeline {
                             openshift.selector('dc', "${APP_NAME}-production").rollout().latest()
                             openshift.selector('dc', "${APP_NAME}-production").rollout().status()
                             def latestVersion = openshift.selector('dc', "${APP_NAME}-production").object().status.latestVersion
+                            echo "Latest Version: ${latestVersion}"
                             echo "Production pod(s) are up: " + openshift.selector('pod',['deployment':"${APP_NAME}-production-${latestVersion}"])
                             // Remove Mirror
                             sh "sed 's/<istio-subdomain>/${SUBDOMAIN}/g' k8s/istio/hello-world-virtual-service-init.yaml.tmpl > k8s/istio/hello-world-virtual-service-init.yaml"
