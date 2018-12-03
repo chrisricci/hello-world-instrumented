@@ -38,6 +38,7 @@ pipeline {
                             if (dc_selector.exists()) {
                                 // if (dc_selector.object().status.availableReplicas == 0) {
                                 def prod_image = openshift.selector('is', APP_NAME).object().status.dockerImageRepository
+                                echo "Prod Image is $prod_image"
                                 openshift.set('image', "dc/${APP_NAME}-canary", "hello-world-canary=${prod_image}:canary")
                                 openshift.selector('dc', "${APP_NAME}-canary").rollout().latest()
                                 openshift.selector('dc', "${APP_NAME}-canary").rollout().status()
