@@ -2,10 +2,12 @@ openshift.withCluster() {
     env.APP_NAME = 'hello-world'
     env.NAMESPACE = openshift.project()
     env.PROD_NAMESPACE = NAMESPACE.replaceAll(/cicd/, 'prod')
-    canaryWeight=10
     def configMap = openshift.selector('configmap', 'istio-app-subdomain').object()
     env.SUBDOMAIN = configMap.data["subdomain"]
-    echo "Subdomain ${SUBDOMAIN}"
+    echo "APP_NAME: ${APP_NAME}"
+    echo "NAMESPACE: ${NAMESPACE}"
+    echo "PROD_NAMESPACE: ${PROD_NAMESPACE}"
+    echo "SUBDOMAIN: ${SUBDOMAIN}"
 }
 
 pipeline {
@@ -55,17 +57,17 @@ pipeline {
             steps {
                 script {
                     openshift.withCluster() {
-                        openshift.tag("$NAMESPACE/$APP_NAME:latest", "$PROD_NAMESPACE/$APP_NAME:canary")
-                        openshift.withProject("$PROD_NAMESPACE") {
+                        echo "Tagging ${PROD_NAMESPACE}/${APP_NAME}:canary from ${NAMESPACE}/${APP_NAME}:latest"
+                        openshift.tag("${NAMESPACE}/${APP_NAME}:latest", "${PROD_NAMESPACE}/${APP_NAME}:canary")
+                        openshift.withProject("${PROD_NAMESPACE}") {
                             def dc_selector = openshift.selector('dc', "${APP_NAME}-canary")
                             if (dc_selector.exists()) {
-                                def canary_image = openshift.selector('is', APP_NAME).object().status.dockerImageRepository
-                                echo "Prod Image is $canary_image"
+                                echo "Setting dc/${APP_NAME}-canary to ${PROD_NAMESPACE}/${APP_NAME}:canary"
                                 openshift.set('image', "dc/${APP_NAME}-canary", "hello-world-canary=${PROD_NAMESPACE}/${APP_NAME}:canary")
                                 openshift.selector('dc', "${APP_NAME}-canary").rollout().latest()
                                 openshift.selector('dc', "${APP_NAME}-canary").rollout().status()
                                 def latestVersion = openshift.selector('dc', "${APP_NAME}-canary").object().status.latestVersion
-                                echo "Latest Version is $latestVersion"
+                                echo "Latest Version is ${latestVersion}"
                                 echo "Canary pod(s) are up: " + openshift.selector('pod',['deployment':"${APP_NAME}-canary-${latestVersion}"])
                             }
                         }
