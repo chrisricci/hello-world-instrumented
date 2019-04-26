@@ -35,7 +35,7 @@ def index():
     time.sleep(2)
     timestamp2 = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     app.logger.debug("Finished at: " + timestamp2)
-    return timestamp2 + " " + hostname + " Hello, World!! -- M&T Bank\n"
+    return timestamp2 + " " + hostname + " Hello, World!!\n"
 
 @app.route('/misbehave')
 def misbehave():
