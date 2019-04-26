@@ -37,6 +37,27 @@ def index():
     app.logger.debug("Finished at: " + timestamp2)
     return timestamp2 + " " + hostname + " Hello, World!! -- M&T Bank\n"
 
+@app.route('/misbehave')
+def misbehave():
+    global misbehave 
+    misbehave = True
+    return "Misbehaving"
+
+@app.route('/behave')
+def behave():
+    global misbehave 
+    misbehave = False
+    return "behaving"
+
+@app.route('/healthz')
+def healthz():
+    global misbehave
+    if misbehave:
+        return "Unavailable", 503
+
+    return "OK", 200
+
 if __name__ == '__main__':
+    misbehave = False
     monitor(app, port=8000)
     app.run(host='0.0.0.0', port=8080)
