@@ -32,10 +32,10 @@ def index():
       # Comment this for demo purposes
       # app.logger.debug("Finished at: " + timestamp)
       
-    time.sleep(2)
+    #time.sleep(2)
     timestamp2 = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     app.logger.debug("Finished at: " + timestamp2)
-    return timestamp2 + " " + hostname + " Hello, World!! -- Update\n"
+    return timestamp2 + " " + hostname + " Hello, World!! -- Update ---\n"
 
 if __name__ == '__main__':
     monitor(app, port=8000)
