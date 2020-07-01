@@ -9,7 +9,7 @@ def prevImageTag = ''
 def prevBuildNum = ''
 def firstDeploy = false
 
-node (jenkins-slave) {
+node () {
   // Check if there's a previous deployment, if so, get the image version so we can rollback if needed
   try {
     prevImageTag = sh(
