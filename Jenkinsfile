@@ -9,6 +9,15 @@ def prevImageTag = ''
 def prevBuildNum = ''
 def firstDeploy = false
 
+podTemplate(label: label,
+        containers: [
+                containerTemplate(name: 'jnlp', image: 'jenkins/jnlp-slave:alpine'),
+                containerTemplate(name: 'docker', image: 'docker', command: 'cat', ttyEnabled: true),
+            ],
+            volumes: [
+                hostPathVolume(hostPath: '/var/run/docker.sock', mountPath: '/var/run/docker.sock'),
+            ],
+        ]) {
 node {
   // Check if there's a previous deployment, if so, get the image version so we can rollback if needed
   try {
@@ -102,3 +111,5 @@ node {
     currentBuild.result = 'SUCCESS'
   }
 }
+}
+	
